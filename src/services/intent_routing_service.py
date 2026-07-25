@@ -4,14 +4,16 @@ intent_routing_service.py
 Purpose
 -------
 Determine which specialist agents should
-process a user's request.
+process a user's request using semantic
+similarity.
 
 Responsibilities
 ----------------
 - Normalize requests
-- Detect business intent
 - Extract customer identifiers
-- Route requests to specialist agents
+- Generate query embeddings
+- Perform semantic intent routing
+- Return routing decisions
 
 Author
 ------
@@ -20,121 +22,165 @@ Credit Risk Research Agent
 
 import re
 
+from dataclasses import dataclass
 from typing import List
 
-from src.config.intent_rules import (
-    CUSTOMER_ID_PATTERN,
-    POLICY_LANGUAGE,
-    POLICY_SUBJECTS,
-    CUSTOMER_INTENT
+from src.config.intent_rules import CUSTOMER_ID_PATTERN
+
+from src.services.embedding_service import EmbeddingService
+from src.services.intent_embedding_service import IntentEmbeddingService
+from src.services.similarity_service import (
+    SimilarityService,
+    AgentSimilarityResult
 )
 
 
+# ------------------------------------------------------------------
+# Routing Models
+# ------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class RoutingDecision:
+    """
+    Represents the routing outcome
+    for a user request.
+    """
+
+    selected_agents: List[str]
+
+    similarity_results: List[AgentSimilarityResult]
+
+    customer_id: str | None
+
+
+# ------------------------------------------------------------------
+# Intent Routing Service
+# ------------------------------------------------------------------
+
 class IntentRoutingService:
-    """
-    Determines which specialist agents
-    should process a request.
-    """
 
-    POLICY_AGENT = "policy"
+    DEFAULT_SIMILARITY_THRESHOLD = 0.70
 
-    CUSTOMER_AGENT = "customer"
+    def __init__(
+        self,
+        embedding_service: EmbeddingService,
+        intent_embedding_service: IntentEmbeddingService,
+        similarity_service: SimilarityService,
+        similarity_threshold: float = DEFAULT_SIMILARITY_THRESHOLD
+    ):
+
+        self._embedding_service = embedding_service
+
+        self._intent_embedding_service = (
+            intent_embedding_service
+        )
+
+        self._similarity_service = (
+            similarity_service
+        )
+
+        self._threshold = similarity_threshold
+
+    # --------------------------------------------------------------
+    # Public API
+    # --------------------------------------------------------------
 
     def identify_agents(
         self,
         request: str
     ) -> List[str]:
         """
-        Determine which specialist
-        agents should process a request.
+        Backward-compatible API.
+
+        Returns only the selected agents.
         """
 
-        request = self._normalize_request(
+        return self.route_request(
             request
-        )
+        ).selected_agents
 
-        customer = False
+    # --------------------------------------------------------------
 
-        policy = False
+    def route_request(
+        self,
+        request: str
+    ) -> RoutingDecision:
+        """
+        Performs semantic routing and
+        returns the complete routing decision.
+        """
 
-        customer_id = (
-            self.extract_customer_id(
+        normalized_request = (
+            self._normalize_request(
                 request
             )
         )
 
-        # -----------------------------------------
-        # Customer Intent
-        # -----------------------------------------
+        customer_id = (
+            self.extract_customer_id(
+                normalized_request
+            )
+        )
 
-        if customer_id:
+        query_embedding = (
 
-            customer = True
+            self._embedding_service.generate_embedding(
 
-        elif self._contains_customer_intent(
-            request
-        ):
+                normalized_request
 
-            customer = True
+            )
 
-        # -----------------------------------------
-        # Policy Intent
-        # -----------------------------------------
+        )
 
-        if self._contains_policy_intent(
-            request
-        ):
+        similarity_results = (
 
-            policy = True
+            self._similarity_service.find_best_matches(
 
-        # -----------------------------------------
-        # Routing Decision
-        # -----------------------------------------
+                query_embedding,
 
-        if policy and customer:
+                self._intent_embedding_service.get_all_embeddings()
 
-            return [
+            )
 
-                self.POLICY_AGENT,
+        )
 
-                self.CUSTOMER_AGENT
+        selected_agents = [
 
-            ]
+            result.agent_name
 
-        if policy:
+            for result
 
-            return [
+            in similarity_results
 
-                self.POLICY_AGENT
+            if result.similarity_score >= self._threshold
 
-            ]
+        ]
 
-        if customer:
+        return RoutingDecision(
 
-            return [
+            selected_agents=selected_agents,
 
-                self.CUSTOMER_AGENT
+            similarity_results=similarity_results,
 
-            ]
+            customer_id=customer_id
 
-        return []
+        )
 
-    # ---------------------------------------------------------
+    # --------------------------------------------------------------
     # Customer Identifier
-    # ---------------------------------------------------------
+    # --------------------------------------------------------------
 
     def extract_customer_id(
         self,
         request: str
     ) -> str | None:
-        """
-        Extract customer identifier from
-        a natural language request.
-        """
 
         match = re.search(
+
             CUSTOMER_ID_PATTERN,
+
             request.upper()
+
         )
 
         if match:
@@ -143,53 +189,11 @@ class IntentRoutingService:
 
         return None
 
-    # ---------------------------------------------------------
-    # Helper Methods
-    # ---------------------------------------------------------
+    # --------------------------------------------------------------
 
+    @staticmethod
     def _normalize_request(
-        self,
         request: str
     ) -> str:
 
         return request.lower().strip()
-
-    def _contains_customer_intent(
-        self,
-        request: str
-    ) -> bool:
-        """
-        Determine whether the request
-        represents customer analysis.
-        """
-
-        return any(
-
-            keyword in request
-
-            for keyword
-
-            in CUSTOMER_INTENT
-
-        )
-
-    def _contains_policy_intent(
-        self,
-        request: str
-    ) -> bool:
-        """
-        Determine whether the request
-        represents policy interpretation.
-        """
-
-        has_language = any(
-        word in request
-        for word in POLICY_LANGUAGE
-        )
-
-        has_subject = any(
-            subject in request
-            for subject in POLICY_SUBJECTS
-        )
-
-        return has_language or has_subject
