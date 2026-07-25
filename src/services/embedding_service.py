@@ -118,17 +118,88 @@ class EmbeddingService:
             f"✓ Output: {output_file}"
         )
 
+# ------------------------------------------------------------------
+# Generic Embedding  Helper functions for intelligent routing -Phase 3
+# ------------------------------------------------------------------
+
+    def generate_embedding(
+        self,
+        text: str
+    ):
+
+        return self.model.encode(
+            text,
+            normalize_embeddings=True
+        )
+
+    def generate_text_embeddings(
+        self,
+        texts: List[str]
+    ):
+
+        return self.model.encode(
+            texts,
+            normalize_embeddings=True
+        )
+
 
 if __name__ == "__main__":
 
-    embedding_service = (
-        EmbeddingService()
+    embedding_service = EmbeddingService()
+
+    print("\n" + "=" * 70)
+    print("TEST 1 - Single Text Embedding")
+    print("=" * 70)
+
+    sample_text = (
+        "What is the minimum credit score required "
+        "for a premium credit card?"
     )
 
-    chunks = (
-        embedding_service.load_chunks(
-            "data/chunks/policy_chunks.json"
+    embedding = embedding_service.generate_embedding(
+        sample_text
+    )
+
+    print(f"Input Text      : {sample_text}")
+    print(f"Embedding Length: {len(embedding)}")
+
+    print("\n" + "=" * 70)
+    print("TEST 2 - Batch Text Embeddings")
+    print("=" * 70)
+
+    sample_texts = [
+
+        "Show customer profile",
+
+        "Assess customer credit risk",
+
+        "Explain lending policy",
+
+        "What are underwriting guidelines?"
+
+    ]
+
+    embeddings = (
+        embedding_service.generate_text_embeddings(
+            sample_texts
         )
+    )
+
+    print(
+        f"Generated {len(embeddings)} embeddings"
+    )
+
+    print(
+        f"Embedding Dimension: "
+        f"{len(embeddings[0])}"
+    )
+
+    print("\n" + "=" * 70)
+    print("TEST 3 - Policy Embedding Pipeline")
+    print("=" * 70)
+
+    chunks = embedding_service.load_chunks(
+        "data/chunks/policy_chunks.json"
     )
 
     embedded_chunks = (
@@ -138,6 +209,12 @@ if __name__ == "__main__":
     )
 
     embedding_service.export_embeddings(
+
         embedded_chunks,
+
         "data/embeddings/policy_embeddings.json"
+
     )
+
+    print("\n✓ All embedding tests completed successfully.")
+
