@@ -450,7 +450,7 @@ The Streamlit interface allows you to:
 |---------|--------|
 | Phase 1 – Policy Intelligence | ✅ Completed |
 | Phase 2 – Customer Risk Assessment | ✅ Completed |
-| Phase 3 – Intelligent Portfolio Assessment | 🚧 Planned |
+| Phase 3 – Intelligent Portfolio Assessment | 🚧 In Progress |
 
 ---
 
