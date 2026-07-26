@@ -26,7 +26,9 @@ from dataclasses import dataclass
 from typing import List
 
 from src.config.intent_rules import CUSTOMER_ID_PATTERN
-
+from src.models.routing_models import import (
+    RoutingDecision
+)
 from src.services.embedding_service import EmbeddingService
 from src.services.intent_embedding_service import IntentEmbeddingService
 from src.services.similarity_service import (
@@ -35,22 +37,6 @@ from src.services.similarity_service import (
 )
 
 
-# ------------------------------------------------------------------
-# Routing Models
-# ------------------------------------------------------------------
-
-@dataclass(frozen=True)
-class RoutingDecision:
-    """
-    Represents the routing outcome
-    for a user request.
-    """
-
-    selected_agents: List[str]
-
-    similarity_results: List[AgentSimilarityResult]
-
-    customer_id: str | None
 
 
 # ------------------------------------------------------------------
