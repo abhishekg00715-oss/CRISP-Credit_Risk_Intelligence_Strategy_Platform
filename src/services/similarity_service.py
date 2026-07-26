@@ -21,24 +21,10 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 import numpy as np
-
+from src.models.routing_models import (
+    AgentSimilarityResult
+)
 from src.services.intent_embedding_service import EmbeddedIntent
-
-
-# ---------------------------------------------------------------------
-# Data Models
-# ---------------------------------------------------------------------
-
-@dataclass(frozen=True)
-class AgentSimilarityResult:
-    """
-    Represents the highest semantic similarity score
-    achieved by an agent.
-    """
-
-    agent_name: str
-    similarity_score: float
-    matched_intent: str
 
 
 # ---------------------------------------------------------------------
