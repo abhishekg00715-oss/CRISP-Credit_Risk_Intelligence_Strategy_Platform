@@ -72,7 +72,27 @@ POLICY_AGENT = AgentIntentDefinition(
 
         "Explain the approval criteria.",
 
-        "Show policy for premium credit cards."
+        "Show policy for premium credit cards.",
+
+        "What are the platinum card requirements?",
+
+        "Premium card policy.",
+
+        "Luxury card eligibility.",
+
+        "Income requirement for platinum cards.",
+
+        "Eligibility criteria for premium products.",
+
+        "Loan approval policy.",
+
+        "Underwriting rules.",
+
+        "Risk acceptance policy.",
+
+        "Credit assessment policy.",
+
+        "Approval guidelines."
     ]
 )
 
@@ -112,7 +132,37 @@ CUSTOMER_AGENT = AgentIntentDefinition(
 
         "Retrieve customer assessment.",
 
-        "Show customer details."
+        "Show customer details.",
+
+        "Can customer CUST000001 qualify?",
+
+        "Is customer CUST000001 eligible for a premium credit card?",
+
+        "Evaluate customer's eligibility.",
+
+        "Assess whether customer qualifies.",
+
+        "Check if this customer meets lending requirements.",
+
+        "Review customer before approval.",
+
+        "Analyze customer's financial profile.",
+
+        "Evaluate customer's repayment capability.",
+
+        "Assess customer's borrowing capacity.",
+
+        "Review customer risk before decision.",
+
+        "Explain customer's credit profile.",
+
+        "Summarize customer risk.",
+
+        "Analyze customer behaviour.",
+
+        "Review customer credit history.",
+
+        "Evaluate customer financial position."
     ]
 )
 
@@ -141,7 +191,21 @@ PORTFOLIO_AGENT = AgentIntentDefinition(
 
         "Show portfolio trends.",
 
-        "Portfolio default rates."
+        "Portfolio default rates.",
+
+        "Portfolio exposure.",
+
+        "Portfolio concentration.",
+
+        "Delinquency trends.",
+
+        "Default hotspots.",
+
+        "Portfolio health.",
+
+        "Portfolio performance dashboard.",
+
+        "Portfolio risk summary."
     ]
 )
 
@@ -166,7 +230,19 @@ RECOMMENDATION_AGENT = AgentIntentDefinition(
 
         "Recommend credit decision.",
 
-        "Final lending recommendation."
+        "Final lending recommendation.",
+
+        "Should we approve this application?",
+
+        "Would you approve this customer?",
+
+        "Recommend a lending decision.",
+
+        "Provide final recommendation.",
+
+        "Make a credit decision.",
+
+        "Approve or review this applicant."
     ]
 )
 

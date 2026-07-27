@@ -134,7 +134,7 @@ class EmbeddingService:
 
     def generate_text_embeddings(
         self,
-        texts: List[str]
+        texts: list[str]
     ):
 
         return self.model.encode(

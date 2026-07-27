@@ -3,17 +3,17 @@ intent_routing_service.py
 
 Purpose
 -------
-Determine which specialist agents should
-process a user's request using semantic
-similarity.
+Determine candidate specialist agents using
+semantic similarity.
 
 Responsibilities
 ----------------
 - Normalize requests
 - Extract customer identifiers
 - Generate query embeddings
-- Perform semantic intent routing
-- Return routing decisions
+- Perform semantic similarity matching
+- Select candidate agents
+- Produce routing decision for policy enrichment
 
 Author
 ------
@@ -22,40 +22,67 @@ Credit Risk Research Agent
 
 import re
 
-from dataclasses import dataclass
 from typing import List
 
-from src.config.intent_rules import CUSTOMER_ID_PATTERN
-from src.models.routing_models import import (
-    RoutingDecision
+from src.config.intent_rules import (
+    CUSTOMER_ID_PATTERN
 )
-from src.services.embedding_service import EmbeddingService
-from src.services.intent_embedding_service import IntentEmbeddingService
-from src.services.similarity_service import (
-    SimilarityService,
+
+from src.models.routing_models import (
+    RoutingDecision,
     AgentSimilarityResult
 )
 
+from src.services.embedding_service import (
+    EmbeddingService
+)
 
+from src.services.intent_embedding_service import (
+    IntentEmbeddingService
+)
 
+from src.services.similarity_service import (
+    SimilarityService
+)
+
+from src.services.routing_policy_service import (
+    RoutingPolicyService
+)
 
 # ------------------------------------------------------------------
 # Intent Routing Service
 # ------------------------------------------------------------------
 
 class IntentRoutingService:
+    """
+    Performs semantic capability detection.
 
-    DEFAULT_SIMILARITY_THRESHOLD = 0.70
+    This service identifies candidate agents
+    using semantic similarity only.
+
+    Business orchestration rules are applied
+    later by RoutingPolicyService.
+    """
+
+    DEFAULT_SIMILARITY_THRESHOLD = 0.7
+
+    MULTI_AGENT_MARGIN = 0.05
+
+    # --------------------------------------------------------------
 
     def __init__(
         self,
         embedding_service: EmbeddingService,
         intent_embedding_service: IntentEmbeddingService,
         similarity_service: SimilarityService,
-        similarity_threshold: float = DEFAULT_SIMILARITY_THRESHOLD
+        routing_policy_service: RoutingPolicyService,
+        similarity_threshold: float = DEFAULT_SIMILARITY_THRESHOLD,
+        multi_agent_margin: float = MULTI_AGENT_MARGIN
     ):
 
-        self._embedding_service = embedding_service
+        self._embedding_service = (
+            embedding_service
+        )
 
         self._intent_embedding_service = (
             intent_embedding_service
@@ -65,7 +92,21 @@ class IntentRoutingService:
             similarity_service
         )
 
-        self._threshold = similarity_threshold
+        self._threshold = (
+            similarity_threshold
+        )
+
+        self._multi_agent_margin = (
+            multi_agent_margin
+        )
+
+        self._routing_policy_service = (
+            routing_policy_service
+        )
+
+        self._multi_agent_margin = (
+            multi_agent_margin
+        )
 
     # --------------------------------------------------------------
     # Public API
@@ -76,14 +117,16 @@ class IntentRoutingService:
         request: str
     ) -> List[str]:
         """
-        Backward-compatible API.
+        Backward compatible API.
 
-        Returns only the selected agents.
+        Returns the candidate agents.
         """
 
-        return self.route_request(
-            request
-        ).selected_agents
+        return (
+            self.route_request(
+                request
+            ).candidate_agents
+        )
 
     # --------------------------------------------------------------
 
@@ -92,8 +135,10 @@ class IntentRoutingService:
         request: str
     ) -> RoutingDecision:
         """
-        Performs semantic routing and
-        returns the complete routing decision.
+        Performs semantic routing.
+
+        Returns a routing decision
+        containing candidate agents.
         """
 
         normalized_request = (
@@ -109,48 +154,113 @@ class IntentRoutingService:
         )
 
         query_embedding = (
-
-            self._embedding_service.generate_embedding(
-
+            self._embedding_service
+            .generate_embedding(
                 normalized_request
-
             )
-
         )
 
         similarity_results = (
-
-            self._similarity_service.find_best_matches(
-
+            self._similarity_service
+            .find_best_matches(
                 query_embedding,
-
-                self._intent_embedding_service.get_all_embeddings()
-
+                self._intent_embedding_service
+                .get_all_embeddings()
             )
-
         )
 
-        selected_agents = [
+        candidate_agents = (
+            self._select_candidate_agents(
+                similarity_results
+            )
+        )
 
-            result.agent_name
-
-            for result
-
-            in similarity_results
-
-            if result.similarity_score >= self._threshold
-
-        ]
+        routing_result = (
+            self._routing_policy_service
+            .apply_rules(
+                candidate_agents=candidate_agents,
+                similarity_results=similarity_results,
+                customer_id=customer_id,
+                request=normalized_request
+            )
+        )
 
         return RoutingDecision(
 
-            selected_agents=selected_agents,
+            candidate_agents=candidate_agents,
 
-            similarity_results=similarity_results,
+            selected_agents=(
+                routing_result.selected_agents
+            ),
 
-            customer_id=customer_id
+            similarity_results=(
+                similarity_results
+            ),
+
+            customer_id=customer_id,
+
+            routing_reasons=routing_result.routing_reasons
 
         )
+
+    # --------------------------------------------------------------
+    # Candidate Selection
+    # --------------------------------------------------------------
+
+    def _select_candidate_agents(
+        self,
+        similarity_results: List[
+            AgentSimilarityResult
+        ]
+    ) -> List[str]:
+        """
+        Select semantic routing candidates.
+
+        Rules
+        -----
+        1. Highest scoring agent must satisfy
+           similarity threshold.
+
+        2. Additional agents are included when
+           they satisfy the threshold and are
+           within the configured margin.
+        """
+
+        if not similarity_results:
+
+            return []
+
+        top_score = (
+            similarity_results[0]
+            .similarity_score
+        )
+
+        if top_score < self._threshold:
+
+            return []
+
+        candidate_agents = []
+
+        for result in similarity_results:
+
+            if (
+                result.similarity_score
+                < self._threshold
+            ):
+
+                continue
+
+            if (
+                top_score
+                - result.similarity_score
+                <= self._multi_agent_margin
+            ):
+
+                candidate_agents.append(
+                    result.agent_name
+                )
+
+        return candidate_agents
 
     # --------------------------------------------------------------
     # Customer Identifier

@@ -11,22 +11,30 @@ Workflow
 1. Load registered intent definitions
 2. Generate intent embeddings
 3. Execute representative routing queries
-4. Display routing decisions
+4. Apply routing business policies
+5. Display routing decisions
 
 Author
 ------
 Credit Risk Research Agent
 """
+
 from typing import List
 
-
-from src.repository.intent_repository import IntentRepository
-from src.services.embedding_service import EmbeddingService
+from src.repository.intent_repository import (
+    IntentRepository
+)
+from src.services.embedding_service import (
+    EmbeddingService
+)
 from src.services.intent_embedding_service import (
     IntentEmbeddingService
 )
 from src.services.similarity_service import (
     SimilarityService
+)
+from src.services.routing_policy_service import (
+    RoutingPolicyService
 )
 from src.services.intent_routing_service import (
     IntentRoutingService
@@ -53,27 +61,14 @@ def execute_query(
     )
 
     assert decision.selected_agents, (
-    "No agents selected for query."
+        "No agents selected for query."
     )
-  
+
     print("\nSelected Agents")
 
     for agent in decision.selected_agents:
 
         print(f"  ✓ {agent}")
-
-    print("\nSimilarity Scores")
-
-    for result in decision.similarity_results:
-
-        print(
-            f"  {result.agent_name:<15}"
-            f"{result.similarity_score:.3f}"
-        )
-
-        print(
-            f"   ↳ {result.matched_intent}"
-        )
 
     if decision.customer_id:
 
@@ -82,17 +77,48 @@ def execute_query(
             f"{decision.customer_id}"
         )
 
-    actual = set(decision.selected_agents)
+    print("\nSimilarity Scores")
 
-    expected = set(expected_agents)
-    
-    if actual != expected:
-    
-        raise AssertionError(
-            f"\nQuery   : {query}\n"
-            f"Expected {expected}\n "
-            f"but received {actual}"
+    for result in decision.similarity_results:
+
+        print(
+            f"  {result.agent_name:<18}"
+            f"{result.similarity_score:.3f}"
         )
+
+        print(
+            f"      ↳ {result.matched_intent}"
+        )
+
+    if decision.routing_reasons:
+
+        print("\nRouting Policies Applied")
+
+        for reason in decision.routing_reasons:
+
+            print(f"  • {reason}")
+
+    actual = set(
+        decision.selected_agents
+    )
+
+    expected = set(
+        expected_agents
+    )
+
+    if actual != expected:
+
+        raise AssertionError(
+
+            f"\nQuery : {query}\n"
+
+            f"Expected : {expected}\n"
+
+            f"Received : {actual}"
+
+        )
+
+    print("\n✓ Routing validated")
 
 
 def main():
@@ -100,9 +126,8 @@ def main():
     print_separator()
 
     print(
-        "SEMANTIC INTENT ROUTING \n"
-        "SMOKE TEST\n"
-        "INITIALIZATION"
+        "SEMANTIC INTENT ROUTING\n"
+        "SMOKE TEST"
     )
 
     print_separator()
@@ -110,8 +135,7 @@ def main():
     # ---------------------------------------------------------
     # Initialise Components
     # ---------------------------------------------------------
-    
-  
+
     repository = IntentRepository()
 
     embedding_service = EmbeddingService()
@@ -127,31 +151,39 @@ def main():
         "\nGenerating intent embeddings..."
     )
 
-  
     intent_embedding_service.initialize()
 
     if not intent_embedding_service.is_initialized():
-    
-        raise RuntimeError(
-            "Intent embeddings failed to initialize."
-        )
-  
 
+        raise RuntimeError(
+            "Intent embeddings failed "
+            "to initialize."
+        )
 
     similarity_service = (
         SimilarityService()
     )
 
+    routing_policy_service = (
+        RoutingPolicyService()
+    )
+
     router = IntentRoutingService(
+
         embedding_service=embedding_service,
-        intent_embedding_service=(
-            intent_embedding_service
-        ),
-        similarity_service=similarity_service
+
+        intent_embedding_service=
+        intent_embedding_service,
+
+        similarity_service=
+        similarity_service,
+
+        routing_policy_service=
+        routing_policy_service
     )
 
     # ---------------------------------------------------------
-    # Display Loaded Intents
+    # Display Registered Intents
     # ---------------------------------------------------------
 
     print_separator()
@@ -168,12 +200,16 @@ def main():
     if not all_embeddings:
 
         raise RuntimeError(
-            "No intent embeddings were generated."
+            "No intent embeddings "
+            "were generated."
         )
-  
+
     for (
+
         agent,
+
         intents
+
     ) in all_embeddings.items():
 
         print(
@@ -186,36 +222,56 @@ def main():
     # ---------------------------------------------------------
 
     execute_query(
+
         router,
+
         "What is the minimum credit score "
         "required for a premium credit card?",
-         ["policy"]
+
+        ["policy"]
+
     )
 
     execute_query(
+
         router,
+
         "Assess customer CUST000001",
+
         ["customer"]
+
     )
 
     execute_query(
+
         router,
+
         "Can customer CUST000001 "
         "receive a premium credit card?",
-         ["policy","customer"]
+
+        ["policy", "customer"]
+
     )
 
     execute_query(
+
         router,
+
         "Show portfolio default trends",
-         ["portfolio"]
+
+        ["portfolio"]
+
     )
 
     execute_query(
+
         router,
+
         "Recommend whether customer "
         "CUST000001 should be approved.",
-         ["customer","policy"]
+
+        ["customer", "recommendation","policy"]
+
     )
 
     print_separator()

@@ -29,20 +29,24 @@ Author
 ------
 Credit Risk Research Agent
 """
-import time
-from typing import Any, Dict
+from src.repository.intent_repository import (
+    IntentRepository
+)
 
-from src.agents.customer_agent import CustomerAgent
-from src.agents.policy_agent import PolicyAgent
-from src.services.intent_routing_service import (
-    IntentRoutingService
+from src.services.embedding_service import (
+    EmbeddingService
 )
-from src.services.response_formatting_service import (
-    ResponseFormattingService
+
+from src.services.intent_embedding_service import (
+    IntentEmbeddingService
 )
-from src.logging.query_logger import QueryLogger
-from src.logging.agent_execution_logger import (
-    AgentExecutionLogger
+
+from src.services.similarity_service import (
+    SimilarityService
+)
+
+from src.services.routing_policy_service import (
+    RoutingPolicyService
 )
 
 
@@ -60,8 +64,32 @@ class CoordinatorAgent:
         and specialist agents.
         """
 
+        embedding_service = EmbeddingService()
+
+        intent_embedding_service = (
+            IntentEmbeddingService(
+                repository=IntentRepository(),
+                embedding_service=embedding_service
+            )
+        )
+
+        intent_embedding_service.initialize()
+
+        similarity_service = SimilarityService()
+
+
         self.routing_service = (
-            IntentRoutingService()
+            IntentRoutingService(
+                embedding_service=embedding_service,
+                intent_embedding_service=(
+                    intent_embedding_service
+                ),
+                similarity_service=similarity_service
+            )
+        )
+
+        self.routing_policy_service = (
+            RoutingPolicyService()
         )
 
         self._register_agents()
@@ -121,25 +149,41 @@ class CoordinatorAgent:
         more specialist agents.
         """
 
-        agent_names = (
+# ---------------------------------------------------------
+# Semantic Routing
+# ---------------------------------------------------------
 
-            self.routing_service
-            .identify_agents(query)
-
-        )
-        customer_id = (
-            self.routing_service.extract_customer_id(
+        routing_decision = (
+            self.routing_service.route_request(
                 query
             )
         )
 
+# ---------------------------------------------------------
+# Business Rule Enrichment
+# ---------------------------------------------------------
+
+        routing_decision = (
+            self.routing_policy_service.apply_rules(
+                routing_decision
+            )
+        )
+
+        agent_names = (
+            routing_decision.selected_agents
+        )
+
+        customer_id = (
+            routing_decision.customer_id
+        )
+        
         self.query_logger.log_query(
             query=query,
             agents=agent_names,
             customer_id=customer_id
         )
 
-        if not agent_names:
+        if not routing_decision.selected_agents:
 
             return self._build_error_response(
 
@@ -169,7 +213,12 @@ class CoordinatorAgent:
 
             "success": True,
 
-            "agents_invoked": agent_names,
+            "agents_invoked": (
+                routing_decision.selected_agents
+            ),
+            "routing_decision": (
+                routing_decision
+            ),
 
             "responses": responses
 
