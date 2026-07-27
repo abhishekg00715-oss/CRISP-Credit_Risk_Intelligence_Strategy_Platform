@@ -158,8 +158,8 @@ The following backlog items constitute the Minimum Viable Product:
 | ID | Feature | Associated Features| status |
 |----|---------|--------|------|
 | SPK-01 | Assess intelligent intent routing approaches (keyword, embedding, ML, SLM/LLM, hybrid) and recommend the preferred architecture |CRA-37, CRA-38, CRA-39| **Done** |
-| CRA-37 | Implement semantic intent routing using the selected approach | | **To Do** |
-| CRA-38 | Implement reusable Intent Repository for semantic routing | |  **To Do** |
+| CRA-37 | Implement semantic intent routing using the selected approach | | **Done** |
+| CRA-38 | Implement reusable Intent Repository for semantic routing | |  **Done** |
 | CRA-39 | Build routing evaluation framework (confidence scoring, fallback logic and routing accuracy tests) | | **To Do**  |
 | SPK-02 | Define the Portfolio Intelligence capability, analytics catalogue, business scenarios, data model and implementation roadmap | CRA-12, CRA-13, CRA-14, CRA-15, CRA-27, CRA-33| **To Do** |
 | CRA-12 | Implement Portfolio Repository and portfolio data foundation | | **To Do**  |
