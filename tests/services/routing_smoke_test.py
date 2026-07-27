@@ -21,6 +21,8 @@ Credit Risk Research Agent
 
 from typing import List
 
+from src.initialization.intent_embedding_initializer import (IntentEmbeddingInitializer)
+
 from src.repository.intent_repository import (
     IntentRepository
 )
@@ -147,18 +149,23 @@ def main():
         )
     )
 
-    print(
-        "\nGenerating intent embeddings..."
+    initializer = IntentEmbeddingInitializer(
+        intent_embedding_service
     )
 
-    intent_embedding_service.initialize()
+    print("\nInitializing intent embeddings...")
 
-    if not intent_embedding_service.is_initialized():
+    initializer.initialize()
+    
 
-        raise RuntimeError(
-            "Intent embeddings failed "
-            "to initialize."
-        )
+   # intent_embedding_service = (
+    #    IntentEmbeddingService(
+    #        repository=repository,
+     #       embedding_service=embedding_service
+      #  )
+   # )
+
+    
 
     similarity_service = (
         SimilarityService()
