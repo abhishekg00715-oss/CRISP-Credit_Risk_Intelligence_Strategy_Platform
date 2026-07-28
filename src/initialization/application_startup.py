@@ -21,6 +21,10 @@ Credit Risk Research Agent
 from src.initialization.routing_bootstrap import (
     RoutingBootstrap
 )
+from src.agents.coordinator_agent import (
+    CoordinatorAgent
+)
+
 
 
 class ApplicationStartup:
@@ -56,6 +60,15 @@ class ApplicationStartup:
         self.routing_bootstrap = (
             RoutingBootstrap()
             .initialize()
+        )
+
+        self.coordinator = CoordinatorAgent(
+
+            routing_service=(
+                self.routing_bootstrap
+                .intent_routing_service
+            )
+
         )
 
         self._initialized = True

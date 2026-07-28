@@ -14,8 +14,6 @@ import sys
 import time
 from pathlib import Path
 
-
-
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 print(PROJECT_ROOT)
@@ -26,6 +24,7 @@ if str(PROJECT_ROOT) not in sys.path:
 import streamlit as st
 
 from src.agents.coordinator_agent import (CoordinatorAgent)
+from src.initialization.application_startup import (ApplicationStartup)
 
 
 # --------------------------------------------------
@@ -85,7 +84,12 @@ if "history" not in st.session_state:
 @st.cache_resource
 def load_coordinator():
 
-    return CoordinatorAgent()
+    startup = (
+        ApplicationStartup()
+        .initialize()
+    )
+
+    return startup.coordinator
 
 # --------------------------------------------------
 # Response Renderer

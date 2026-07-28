@@ -4,3 +4,9 @@
 {"timestamp": "2026-07-17T17:46:01", "query": "Can a customer with a credit score of 640 be approved?\n", "agents": ["policy"], "customer_id": null}
 {"timestamp": "2026-07-17T17:50:42", "query": "Can a customer with a credit score of 640 be approved?", "agents": ["policy"], "customer_id": null}
 {"timestamp": "2026-07-17T17:51:12", "query": "What utilization ratio is considered low risk?", "agents": ["policy"], "customer_id": null}
+{"timestamp": "2026-07-28T12:01:47", "query": "What is the minimum credit score required for a premium credit card?\n", "agents": ["policy"], "customer_id": null}
+{"timestamp": "2026-07-28T12:03:41", "query": "Recommend whether customer CUST000001 should be approved.\n", "agents": ["customer", "policy", "recommendation"], "customer_id": "CUST000001"}
+{"timestamp": "2026-07-28T12:04:09", "query": "Can customer CUST000001 receive a premium credit card?\n\n", "agents": ["customer", "policy"], "customer_id": "CUST000001"}
+{"timestamp": "2026-07-28T12:04:58", "query": "Can customer CUST000002 receive a premium credit card?\n\n", "agents": ["customer", "policy"], "customer_id": "CUST000002"}
+{"timestamp": "2026-07-28T12:12:40", "query": "Can customer CUST000004 receive a premium credit card?\n\n", "agents": ["customer", "policy"], "customer_id": "CUST000004"}
+{"timestamp": "2026-07-28T12:18:43", "query": "analyze CUST000004 for credit risk\n\n", "agents": ["customer", "policy", "portfolio", "recommendation"], "customer_id": "CUST000004"}

@@ -424,21 +424,12 @@ if __name__ == "__main__":
         ApplicationStartup
     )
 
-    startup = ApplicationStartup()
+    if __name__ == "__main__":
 
-    startup.initialize()
-
-    coordinator = (
-        startup.create_coordinator()
-    )
-
-    response = coordinator.process_query(
-
-        "Assess customer CUST000001 "
-        "against the premium credit "
-        "card policy."
-
-    )
+        raise RuntimeError(
+            "CoordinatorAgent should be created "
+            "via ApplicationStartup."
+        )
 
     from pprint import pprint
 
