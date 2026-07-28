@@ -3,158 +3,118 @@ application_startup.py
 
 Purpose
 -------
-Initializes the shared application infrastructure.
+Initializes the shared application
+infrastructure.
 
 Responsibilities
 ----------------
-- Build shared infrastructure services
-- Initialize semantic routing
-- Expose initialized components
-- Ensure startup occurs only once
+- Perform application startup
+- Initialize routing subsystem
+- Expose shared services
+- Execute startup once
 
 Author
 ------
 Credit Risk Research Agent
 """
 
-from src.repository.intent_repository import (
-    IntentRepository
-)
-
-from src.services.embedding_service import (
-    EmbeddingService
-)
-
-from src.services.intent_embedding_service import (
-    IntentEmbeddingService
-)
-
-from src.services.similarity_service import (
-    SimilarityService
-)
-
-from src.services.routing_policy_service import (
-    RoutingPolicyService
-)
-
-from src.services.intent_routing_service import (
-    IntentRoutingService
-)
-
-from src.startup.routing_bootstrap import (
+from src.initialization.routing_bootstrap import (
     RoutingBootstrap
 )
 
 
 class ApplicationStartup:
     """
-    Initializes the complete routing infrastructure.
+    Coordinates application startup.
 
-    Startup is performed only once and the created
-    service instances are shared throughout the
-    application.
+    This component owns the application
+    lifecycle while RoutingBootstrap owns
+    the routing infrastructure.
     """
 
     def __init__(self):
 
         self._initialized = False
 
-        self.embedding_service = None
-
-        self.intent_repository = None
-
-        self.intent_embedding_service = None
-
-        self.similarity_service = None
-
-        self.routing_policy_service = None
-
-        self.routing_service = None
+        self.routing_bootstrap = None
 
     # ---------------------------------------------------------
     # Public API
     # ---------------------------------------------------------
 
-    def initialize(self) -> None:
+    def initialize(self):
         """
-        Initializes the application.
+        Performs application startup.
 
-        Safe to call multiple times.
+        Safe to invoke multiple times.
         """
 
         if self._initialized:
 
-            return
+            return self
 
-        # -------------------------------------------------
-        # Shared Services
-        # -------------------------------------------------
-
-        self.embedding_service = (
-            EmbeddingService()
-        )
-
-        self.intent_repository = (
-            IntentRepository()
-        )
-
-        self.intent_embedding_service = (
-            IntentEmbeddingService(
-
-                repository=
-                self.intent_repository,
-
-                embedding_service=
-                self.embedding_service
-            )
-        )
-
-        self.similarity_service = (
-            SimilarityService()
-        )
-
-        self.routing_policy_service = (
-            RoutingPolicyService()
-        )
-
-        # -------------------------------------------------
-        # Initialize Intent Embeddings
-        # -------------------------------------------------
-
-        RoutingBootstrap(
-
-            intent_embedding_service=
-            self.intent_embedding_service
-
-        ).initialize()
-
-        # -------------------------------------------------
-        # Routing Service
-        # -------------------------------------------------
-
-        self.routing_service = (
-            IntentRoutingService(
-
-                embedding_service=
-                self.embedding_service,
-
-                intent_embedding_service=
-                self.intent_embedding_service,
-
-                similarity_service=
-                self.similarity_service,
-
-                routing_policy_service=
-                self.routing_policy_service
-
-            )
+        self.routing_bootstrap = (
+            RoutingBootstrap()
+            .initialize()
         )
 
         self._initialized = True
 
+        return self
+
+    # ---------------------------------------------------------
+    # Exposed Services
     # ---------------------------------------------------------
 
     @property
-    def initialized(self) -> bool:
+    def routing_service(self):
+
+        return (
+            self.routing_bootstrap
+            .intent_routing_service
+        )
+
+    @property
+    def embedding_service(self):
+
+        return (
+            self.routing_bootstrap
+            .embedding_service
+        )
+
+    @property
+    def intent_repository(self):
+
+        return (
+            self.routing_bootstrap
+            .intent_repository
+        )
+
+    @property
+    def intent_embedding_service(self):
+
+        return (
+            self.routing_bootstrap
+            .intent_embedding_service
+        )
+
+    @property
+    def similarity_service(self):
+
+        return (
+            self.routing_bootstrap
+            .similarity_service
+        )
+
+    @property
+    def routing_policy_service(self):
+
+        return (
+            self.routing_bootstrap
+            .routing_policy_service
+        )
+
+    @property
+    def initialized(self):
 
         return self._initialized

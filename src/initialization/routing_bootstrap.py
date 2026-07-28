@@ -3,14 +3,14 @@ routing_bootstrap.py
 
 Purpose
 -------
-Bootstraps the semantic intent routing subsystem.
+Bootstraps the complete semantic routing subsystem.
 
 Responsibilities
 ----------------
-- Create routing dependencies
+- Construct routing infrastructure
 - Initialize semantic intent embeddings
-- Construct the routing pipeline
-- Expose initialized routing components
+- Build routing services
+- Expose initialized services
 
 Author
 ------
@@ -48,18 +48,45 @@ from src.services.intent_routing_service import (
 
 class RoutingBootstrap:
     """
-    Bootstraps the semantic routing subsystem.
+    Builds and initializes the semantic
+    routing infrastructure.
 
-    This component is responsible for wiring
-    together all routing dependencies during
-    application startup.
+    Startup is safe to invoke multiple
+    times.
     """
 
     def __init__(self):
 
-        # -----------------------------------------
+        self._initialized = False
+
+        self.embedding_service = None
+
+        self.intent_repository = None
+
+        self.intent_embedding_service = None
+
+        self.similarity_service = None
+
+        self.routing_policy_service = None
+
+        self.intent_routing_service = None
+
+    # ---------------------------------------------------------
+    # Public API
+    # ---------------------------------------------------------
+
+    def initialize(self):
+        """
+        Initializes the routing subsystem.
+        """
+
+        if self._initialized:
+
+            return self
+
+        # -------------------------------------------------
         # Core Services
-        # -----------------------------------------
+        # -------------------------------------------------
 
         self.embedding_service = (
             EmbeddingService()
@@ -76,21 +103,17 @@ class RoutingBootstrap:
             )
         )
 
-        # -----------------------------------------
-        # Initialize embeddings
-        # -----------------------------------------
+        # -------------------------------------------------
+        # Initialize Intent Embeddings
+        # -------------------------------------------------
 
-        initializer = (
-            IntentEmbeddingInitializer(
-                self.intent_embedding_service
-            )
-        )
+        IntentEmbeddingInitializer(
+            self.intent_embedding_service
+        ).initialize()
 
-        initializer.initialize()
-
-        # -----------------------------------------
-        # Supporting services
-        # -----------------------------------------
+        # -------------------------------------------------
+        # Supporting Services
+        # -------------------------------------------------
 
         self.similarity_service = (
             SimilarityService()
@@ -100,21 +123,27 @@ class RoutingBootstrap:
             RoutingPolicyService()
         )
 
-        # -----------------------------------------
-        # Routing service
-        # -----------------------------------------
+        # -------------------------------------------------
+        # Intent Routing
+        # -------------------------------------------------
 
         self.intent_routing_service = (
             IntentRoutingService(
-                embedding_service=self.embedding_service,
-                intent_embedding_service=(
-                    self.intent_embedding_service
-                ),
-                similarity_service=(
-                    self.similarity_service
-                ),
-                routing_policy_service=(
-                    self.routing_policy_service
-                )
+
+                embedding_service=
+                self.embedding_service,
+
+                intent_embedding_service=
+                self.intent_embedding_service,
+
+                similarity_service=
+                self.similarity_service,
+
+                routing_policy_service=
+                self.routing_policy_service
             )
         )
+
+        self._initialized = True
+
+        return self

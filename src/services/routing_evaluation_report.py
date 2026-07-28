@@ -1,27 +1,15 @@
 """
 routing_evaluation_report.py
-
-Purpose
--------
-Produces a standardized routing evaluation report.
-
-Responsibilities
-----------------
-- Display benchmark statistics
-- Display routing accuracy
-- Display failed scenarios
-- Provide reusable reporting utilities
-
-Author
-------
-Credit Risk Research Agent
 """
 
 from dataclasses import dataclass
 from typing import List
 
-from src.models.routing_models import RoutingDecision
-from tests.services.routing_test_cases import RoutingTestCase
+from tests.routing.routing_test_cases import RoutingTestCase
+
+from src.services.routing_evaluation_service import (
+    RoutingEvaluationResult
+)
 
 
 @dataclass
@@ -35,10 +23,6 @@ class FailedRoutingCase:
 
 
 class RoutingEvaluationReport:
-    """
-    Produces evaluation summaries
-    for routing benchmark execution.
-    """
 
     def __init__(self):
 
@@ -51,26 +35,16 @@ class RoutingEvaluationReport:
         ] = []
 
     # ---------------------------------------------------------
-    # Recording
-    # ---------------------------------------------------------
 
     def record_result(
         self,
         test_case: RoutingTestCase,
-        decision: RoutingDecision
+        evaluation: RoutingEvaluationResult
     ) -> None:
 
         self.total += 1
 
-        actual = set(
-            decision.selected_agents
-        )
-
-        expected = set(
-            test_case.expected_agents
-        )
-
-        if actual == expected:
+        if evaluation.passed:
 
             self.passed += 1
 
@@ -82,18 +56,18 @@ class RoutingEvaluationReport:
 
                 query=test_case.query,
 
-                expected_agents=
-                sorted(expected),
+                expected_agents=(
+                    evaluation.expected_agents
+                ),
 
-                actual_agents=
-                sorted(actual)
+                actual_agents=(
+                    evaluation.actual_agents
+                )
 
             )
 
         )
 
-    # ---------------------------------------------------------
-    # Metrics
     # ---------------------------------------------------------
 
     @property
@@ -103,15 +77,17 @@ class RoutingEvaluationReport:
 
             return 0.0
 
-        return (
+        return round(
 
-            self.passed
-            / self.total
+            (
+                self.passed
+                / self.total
+            ) * 100,
 
-        ) * 100
+            2
 
-    # ---------------------------------------------------------
-    # Output
+        )
+
     # ---------------------------------------------------------
 
     def print_summary(self) -> None:
