@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Credit Risk Research Agent is a modular, local-first Agentic AI platform designed to support credit analysts in researching lending policies, assessing customer creditworthiness, and producing explainable credit risk insights.
+CRISP(Credit Risk Intelligence & Strategy Platform) is a modular, local-first Agentic AI platform designed to support credit analysts in researching lending policies, assessing customer creditworthiness, and producing explainable credit risk insights.
 
 The solution follows a layered architecture that separates presentation, orchestration, business capabilities, data access, and infrastructure concerns.
 
