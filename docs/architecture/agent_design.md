@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Credit Risk Research Agent follows a modular, multi-agent architecture where each specialist agent owns a single business capability. A lightweight Coordinator Agent orchestrates interactions between agents while keeping business logic isolated within individual components.
+The CRISP(Credit Risk Intelligence & Strategy Platform) follows a modular, multi-agent architecture where each specialist agent owns a single business capability. A lightweight Coordinator Agent orchestrates interactions between agents while keeping business logic isolated within individual components.
 
 The current implementation follows these architectural principles:
 
