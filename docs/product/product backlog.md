@@ -30,9 +30,9 @@
 | ID | Feature / User Story | Priority |
 |----|----------------------|----------|
 | CRA-12 | Implement Portfolio Repository and portfolio data foundation | Must |
-| CRA-13 | Implement Portfolio Analytics Service | Should |
-| CRA-14 | Implement Portfolio Summary Service | Should |
-| CRA-15 | Implement Portfolio Agent | Could |
+| CRA-13 | Implement Portfolio Analytics Service(Portfolio KPIs, Segment Analysis, Risk Distribution,Exposure Analysis, Concentration Analysis,Default Analysis, Risk Trend Analysis,Portfolio Health Metrics) | Must |
+| CRA-14 | Implement Portfolio Summary Service for executive and analyst-friendly portfolio insights| Should |
+| CRA-15 | Implement Portfolio Agent | Must |
 
 ---
 
@@ -164,8 +164,8 @@ The following backlog items constitute the Minimum Viable Product:
 | SPK-02 | Define the Portfolio Intelligence capability, analytics catalogue, business scenarios, data model and implementation roadmap | CRA-12, CRA-13, CRA-14, CRA-15, CRA-27, CRA-33| **To Do** |
 | CRA-12 | Implement Portfolio Repository and portfolio data foundation | | **To Do**  |
 | CRA-13 | Implement Portfolio Analytics Service (portfolio KPIs, segment analysis, risk distribution, exposure analysis) |  | **To Do**  |
-| CRA-14 | Implement Portfolio Summary Service for analyst-friendly portfolio insights |  | **To Do**  |
-| CRA-15 | Implement Portfolio Summary Service for analyst-friendly portfolio insights |  | **To Do**  |
+| CRA-14 | Implement Portfolio Summary Service for executive and analyst-friendly portfolio insights |  | **To Do**  |
+| CRA-15 | Implement Portfolio Agent |  | **To Do**  |
 | CRA-27 | Integrate Portfolio Agent with Coordinator Agent|  | **To Do**  |
 | CRA-33 | Build Streamlit UI for Portfolio Intelligence |  | **To Do**  |
 
