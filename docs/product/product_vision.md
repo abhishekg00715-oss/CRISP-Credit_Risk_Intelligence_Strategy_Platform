@@ -1,6 +1,6 @@
 # Product Vision
 
-## Vision
+## Vision - CRISP(Credit Risk Intelligence & Strategy Platform)
 
 To build a modular, explainable, AI-powered Credit Decision Intelligence Platform that enables financial institutions to make faster, more consistent, and evidence-based lending decisions through collaborative AI agents specializing in policy interpretation, customer assessment, portfolio intelligence, recommendations, and explainable decision support across the credit lifecycle.
 
