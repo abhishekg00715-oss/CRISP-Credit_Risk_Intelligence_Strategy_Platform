@@ -4,7 +4,7 @@
 
 ## Overview
 
-This document describes the end-to-end execution flows implemented within the Credit Risk Research Agent.
+This document describes the end-to-end execution flows implemented within the CRISP (Credit Risk Intelligence & Strategy Platform).
 
 Unlike the Solution Architecture document, which focuses on structural components, this document illustrates how requests travel through the system during runtime.
 
