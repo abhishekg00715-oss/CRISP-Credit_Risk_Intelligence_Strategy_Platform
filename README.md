@@ -257,7 +257,19 @@ src/
 ```
 
 ---
+# Intelligence Domain Overview 
 
+|Intelligence Domain |	Agents |
+|--------------|-------------|
+|Knowledge Intelligence |	Policy, Regulatory |
+|Customer Intelligence |	Customer Assessment, Opportunity Intelligence, Fraud |
+|Portfolio Intelligence |	Portfolio Analytics, Collections |
+|Decision Intelligence |	Recommendation, Policy Decision Engine, Business Rules Engine|
+|Strategic Intelligence	|Market Intelligence, Executive Dashboard, Predictive Analytics |
+
+
+
+----
 # Project Roadmap
 
 The project is being developed incrementally through capability-driven phases.
