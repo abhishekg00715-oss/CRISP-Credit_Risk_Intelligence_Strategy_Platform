@@ -3,7 +3,7 @@
 
 ## Overview
 
-The Credit Risk Research Agent combines unstructured policy documents, structured customer data, portfolio datasets, and generated decision intelligence to support policy research, credit risk assessment, and recommendation generation.
+The CRISP (Credit Risk Intelligence & Strategy Platform) combines unstructured policy documents, structured customer data, portfolio datasets, and generated decision intelligence to support policy research, credit risk assessment, and recommendation generation.
 
 The solution follows a local-first architecture using PDFs, ChromaDB, SQLite, and CSV files.
 
