@@ -2,7 +2,7 @@
 
 > **Status:** In Progress
 
-This document defines the quality attributes, operational expectations, and architectural constraints for the Credit Risk Research Agent.
+This document defines the quality attributes, operational expectations, and architectural constraints for the CRISP(Credit Risk Intelligence & Strategy Platform).
 
 The NFR catalogue evolves alongside the implementation roadmap and is intended to ensure that every architectural enhancement contributes toward a scalable, maintainable, explainable, and production-ready multi-agent platform.
 
