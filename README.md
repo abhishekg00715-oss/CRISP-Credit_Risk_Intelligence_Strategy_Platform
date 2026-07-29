@@ -1,4 +1,4 @@
-# Credit Risk Research Agent
+# CRISP (Credit Risk Intelligence & Strategy Platform)
 
 An AI-powered, local-first, multi-agent decision support platform that demonstrates how Agentic AI, Retrieval-Augmented Generation (RAG), semantic search, and explainable AI can be applied to enterprise Credit Risk decision support.
 
@@ -27,7 +27,7 @@ Analysts often spend considerable time navigating these sources, resulting in:
 - Limited explainability
 - High onboarding effort for new analysts
 
-The Credit Risk Research Agent addresses these challenges by combining Retrieval-Augmented Generation (RAG) with specialized AI agents that retrieve, analyze and explain credit risk information.
+CRISP (Credit Risk Intelligence & Strategy Platform) addresses these challenges by combining Retrieval-Augmented Generation (RAG) with specialized AI agents that retrieve, analyze and explain credit risk information.
 
 ---
 
@@ -482,6 +482,6 @@ Additional project documentation is available under the `docs/` directory, inclu
 
 ---
 
-**Credit Risk Research Agent** demonstrates how modern Agentic AI architectures can combine Retrieval-Augmented Generation, semantic search, structured analytics, and explainable AI into a modular decision support platform for enterprise credit risk management.
+**CRISP (Credit Risk Intelligence & Strategy Platform)** demonstrates how modern Agentic AI architectures can combine Retrieval-Augmented Generation, semantic search, structured analytics, and explainable AI into a modular decision support platform for enterprise credit risk management.
 
 
