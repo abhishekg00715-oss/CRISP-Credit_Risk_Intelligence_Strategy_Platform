@@ -1,6 +1,6 @@
 # 1. Purpose
 
-The Business Rules Catalogue documents the business decision rules currently implemented by the Credit Risk Research Agent. These rules are intended for demonstration purposes and provide transparency into how customer assessments are derived during the MVP phases.
+The Business Rules Catalogue documents the business decision rules currently implemented by the CRISP(Credit Risk Intelligence & Strategy Platform). These rules are intended for demonstration purposes and provide transparency into how customer assessments are derived during the MVP phases.
 The rules are not institution-specific underwriting policies and should be regarded as configurable reference implementations.
 
 # 2. Business Rules Overview 
