@@ -267,16 +267,212 @@ Recommendation Candidates
 
 The analytical workflows described in this section establish the orchestration layer of Portfolio Intelligence. The following section defines the analytical capabilities that comprise each workflow.
 
-# Document Evolution
+-----
 
-This document will be progressively elaborated during SPK-02 through the addition of the following sections:
+# 8. Portfolio Analytics Catalogue
 
-1. Analytical Business Objectives
-2. Analytical Workflows
-3. Portfolio Analytics Catalogue
-4. Portfolio KPI Catalogue
-5. Portfolio Analytical Data Foundation
-6. Portfolio Response Model
-7. Logical Architecture
+The Portfolio Analytics Catalogue defines the reusable analytical capabilities available within the Portfolio Analytics Service.
 
-Each section builds upon the previous one to establish the complete functional and architectural foundation required to implement the Portfolio Intelligence capability within CRISP.
+Each analytical capability performs a specific portfolio analysis and can be reused across multiple analytical workflows. This modular approach promotes consistency, reusability and independent evolution of analytical services while maintaining deterministic analytical execution.
+
+---
+
+## Portfolio Analytics Catalogue
+
+| Analytical Capability | Business Purpose | Typical Outputs | Consumed By |
+|------------------------|------------------|-----------------|-------------|
+| **Portfolio Health Analytics** | Assess the overall health and quality of the portfolio. | Portfolio health indicators, quality assessment | Portfolio Health Workflow |
+| **Portfolio Performance Analytics** | Evaluate overall portfolio performance across key business measures. | Performance indicators, portfolio summary metrics | Portfolio Health Workflow |
+| **Portfolio Risk Analytics** | Analyse portfolio-wide credit risk characteristics. | Risk profile, risk distribution, high-risk segments | Portfolio Health Workflow, Portfolio Risk Workflow |
+| **Portfolio Exposure Analytics** | Assess portfolio exposure and concentration. | Exposure distribution, concentration analysis | Portfolio Health Workflow, Portfolio Exposure Workflow |
+| **Portfolio Segmentation Analytics** | Compare portfolio performance across customer, product and geographic dimensions. | Segment comparisons, segment rankings | Portfolio Segmentation Workflow, Portfolio Opportunity Workflow |
+| **Portfolio Trend Analytics** | Analyse changes in portfolio behaviour over time. | Trend indicators, performance movement, risk trends | Portfolio Health Workflow, Portfolio Trend Workflow |
+| **Portfolio Opportunity Analytics** | Identify opportunities to optimise portfolio growth while maintaining acceptable risk. | Opportunity candidates, growth segments | Portfolio Opportunity Workflow |
+
+---
+
+## Design Principles
+
+The Portfolio Analytics Catalogue follows the following principles:
+
+- Each analytical capability has a single analytical responsibility.
+- Analytical capabilities are reusable across multiple business objectives and workflows.
+- Analytical capabilities remain independent of presentation, visualisation and narrative generation.
+- Analytical capabilities produce structured analytical outputs that can be consumed by the Portfolio Summary Service and Recommendation Agent.
+- New analytical capabilities can be introduced without impacting existing workflows, provided they conform to the established analytical execution model.
+
+The subsequent section defines the Key Performance Indicators (KPIs) and business measures produced by these analytical capabilities.
+---------
+
+# 9. Portfolio KPI Catalogue
+
+The Portfolio KPI Catalogue defines the key business measures produced by each analytical capability. These KPIs provide the quantitative foundation for portfolio assessments, executive summaries and recommendation generation.
+
+The KPI catalogue is organised by analytical capability to maintain clear traceability between analytical execution and business outcomes.
+
+---
+
+## Portfolio KPI Catalogue
+
+| Analytical Capability | Key Performance Indicators (KPIs) |
+|------------------------|-----------------------------------|
+| **Portfolio Health Analytics** | Portfolio Health Score, Active Customers, Portfolio Quality Index, Average Credit Score |
+| **Portfolio Performance Analytics** | Total Portfolio Value, Total Credit Exposure, Average Credit Utilisation, Portfolio Growth Rate |
+| **Portfolio Risk Analytics** | High-Risk Customer %, Delinquency Rate, Default Rate, Average Risk Score |
+| **Portfolio Exposure Analytics** | Total Exposure, Exposure by Product, Exposure by Region, Concentration Ratio |
+| **Portfolio Segmentation Analytics** | Customers by Segment, Segment Performance Score, Segment Risk Distribution, Segment Exposure |
+| **Portfolio Trend Analytics** | Credit Score Trend, Utilisation Trend, Delinquency Trend, Portfolio Growth Trend |
+| **Portfolio Opportunity Analytics** | Eligible Upgrade Customers, Cross-Sell Opportunities, Credit Limit Increase Candidates, Low-Risk Growth Opportunities |
+
+---
+
+## Design Principles
+
+The Portfolio KPI Catalogue follows the following principles:
+
+- KPIs represent business measures rather than implementation-specific calculations.
+- Each KPI is owned by a single analytical capability.
+- KPIs may be reused across multiple analytical workflows through their associated analytical capability.
+- KPI calculations are derived from the Portfolio Analytical Data Foundation and remain independent of presentation or visualisation.
+- Additional KPIs can be introduced without impacting the overall analytical architecture.
+
+The next section defines the Portfolio Analytical Data Foundation that provides the derived metrics, analytical views and business dimensions required to compute these KPIs.
+
+-------
+
+# 10. Portfolio Analytical Data Foundation
+
+The Portfolio Analytical Data Foundation provides the analytically prepared datasets required to support Portfolio Intelligence.
+
+Unlike the operational customer repository, which stores transactional customer information, the analytical data foundation contains pre-computed portfolio metrics, derived measures and analytical views that enable efficient portfolio analysis without performing complex calculations during query execution.
+
+---
+
+## Design Principles
+
+The Portfolio Analytical Data Foundation follows the following principles:
+
+- Stores analytical data rather than operational transactions.
+- Contains derived metrics prepared for analytical consumption.
+- Optimised for read-heavy analytical workloads.
+- Supports reusable analytical capabilities and KPI generation.
+- Provides a consistent analytical view across all portfolio workflows.
+
+---
+
+## Analytical Data Components
+
+| Analytical Component | Purpose |
+|----------------------|---------|
+| **Portfolio Summary View** | Provides portfolio-level aggregated metrics and health indicators. |
+| **Portfolio Risk View** | Stores portfolio-wide risk distributions and default-related measures. |
+| **Portfolio Exposure View** | Maintains aggregated exposure and concentration metrics across the portfolio. |
+| **Portfolio Segmentation View** | Provides customer, product and geographic segmentation metrics. |
+| **Portfolio Trend View** | Stores time-series analytical measures for trend and behavioural analysis. |
+| **Portfolio Opportunity View** | Contains derived opportunity indicators supporting portfolio optimisation and growth analysis. |
+
+---
+
+## Common Business Dimensions
+
+Portfolio analytics are organised using a consistent set of business dimensions to enable comparative and multidimensional analysis.
+
+| Business Dimension | Purpose |
+|--------------------|---------|
+| Customer Segment | Compare analytical outcomes across customer groups. |
+| Product | Analyse portfolio performance by lending product. |
+| Geography | Evaluate regional portfolio performance and risk. |
+| Risk Rating | Compare analytical measures across portfolio risk categories. |
+| Time | Support trend analysis and period comparisons. |
+
+---
+
+## Architectural Significance
+
+The Portfolio Analytical Data Foundation serves as the analytical backbone of Portfolio Intelligence.
+
+It decouples analytical computation from portfolio query execution by providing reusable, analytically ready datasets that support Portfolio Analytics Services, KPI generation and executive portfolio reporting.
+
+The subsequent sections define the Portfolio Response Model and the logical architecture that orchestrates these analytical components.
+
+-----------
+
+# 11. Portfolio Response Model
+
+The Portfolio Response Model defines the standard output produced by the Portfolio Agent following the execution of a portfolio analytical workflow.
+
+The response is designed to support two distinct consumers:
+
+- Business users requiring concise portfolio insights.
+- Downstream agents, particularly the Recommendation Agent, requiring structured analytical evidence for recommendation generation.
+
+The response model separates analytical computation from business interpretation and recommendation generation, ensuring each capability within CRISP maintains a single responsibility.
+
+---
+
+## Response Structure
+
+| Response Component | Purpose | Primary Consumer |
+|--------------------|---------|------------------|
+| **Business Objective** | Identifies the analytical objective satisfied by the Portfolio Agent. | Recommendation Agent, Audit |
+| **Portfolio Summary** | Executive summary describing the overall portfolio assessment. | Business User |
+| **Portfolio KPIs** | Key business measures supporting the assessment. | Business User, Recommendation Agent |
+| **Business Insights** | Human-readable interpretation of the analytical results. | Business User |
+| **Business Findings** | Significant positive observations, risks and opportunities identified during analysis. | Recommendation Agent |
+| **Supporting Visualisations** | Charts and dashboards supporting interpretation of portfolio performance. | Business User |
+| **Recommendation Context** | Structured analytical evidence used by the Recommendation Agent to generate contextual recommendations. | Recommendation Agent |
+
+---
+
+## Conceptual Response Model
+
+```text
+Portfolio Business Objective
+            │
+            ▼
+Portfolio Summary
+            │
+            ▼
+Portfolio KPIs
+            │
+            ▼
+Business Insights
+            │
+            ▼
+Business Findings
+            │
+            ▼
+Recommendation Context
+```
+
+---
+
+## Recommendation Context
+
+Rather than producing recommendations directly, the Portfolio Agent provides a structured recommendation context describing the analytical outcome.
+
+Typical recommendation context includes:
+
+- Overall portfolio assessment
+- Areas requiring management attention
+- Emerging portfolio risks
+- Portfolio optimisation opportunities
+- Supporting business evidence
+- Confidence in analytical findings
+
+This enables the Recommendation Agent to generate recommendations that are contextual, explainable and aligned with the user's original business objective.
+
+---
+
+## Design Principles
+
+The Portfolio Response Model follows the following principles:
+
+- Maintain clear separation between analytics and recommendations.
+- Produce structured outputs suitable for both human and machine consumption.
+- Provide sufficient analytical evidence to support explainable recommendations.
+- Ensure consistency across all portfolio analytical workflows.
+- Remain extensible to support future analytical capabilities without changing the response contract.
+
+
+------------
