@@ -18,6 +18,8 @@ Portfolio Intelligence is a core capability of CRISP that enables portfolio-leve
 
 Unlike the Customer Agent, which assesses an individual customer, the Portfolio Agent evaluates the overall portfolio by analysing pre-computed analytical datasets representing the portfolio's composition, quality, exposure and performance.
 
+Rather than executing every available analysis, the Portfolio Agent determines the underlying business objective of a portfolio-related query and orchestrates the appropriate analytical capabilities to generate explainable, evidence-based portfolio insights.
+
 The outcome of this spike is to establish the functional scope and architectural direction required to implement the Portfolio Intelligence capability represented by the following product backlog items.
 
 | Backlog ID | Feature |
@@ -27,15 +29,15 @@ The outcome of this spike is to establish the functional scope and architectural
 | CRA-14 | Portfolio Summary Service |
 | CRA-15 | Portfolio Agent |
 
-This document intentionally focuses on architecture and functional design rather than implementation details.
+This document intentionally focuses on architecture and functional design rather than implementation details and will be progressively elaborated throughout Phase 3.
 
 ---
 
 # 2. Portfolio Intelligence Vision
 
-The Portfolio Intelligence capability transforms portfolio-level analytical data into actionable business intelligence for portfolio managers, credit risk analysts and executive stakeholders.
+Portfolio Intelligence transforms portfolio-level analytical data into actionable business intelligence for portfolio managers, credit risk analysts and executive stakeholders.
 
-Rather than retrieving operational data or performing transactional calculations, Portfolio Intelligence consumes reusable analytical services to answer strategic business questions such as:
+Rather than retrieving operational data or performing transactional calculations, the Portfolio Agent interprets portfolio-related business questions, determines the underlying analytical objective and orchestrates reusable analytical services to answer strategic questions such as:
 
 - How healthy is the current portfolio?
 - Where are the major areas of credit risk?
@@ -44,33 +46,88 @@ Rather than retrieving operational data or performing transactional calculations
 - What trends are emerging over time?
 - What opportunities exist to improve portfolio performance?
 
-The Portfolio Agent interprets these analytical results and produces concise business narratives supported by visual evidence.
+The outcome is an explainable portfolio assessment consisting of business insights, supporting analytical evidence and recommendation candidates that can be further tailored by downstream capabilities.
 
 ---
 
-# 3. Portfolio Analytical Capabilities
+# 3. Design Philosophy
 
-Portfolio Intelligence is organised around five core analytical capabilities.
+Portfolio Intelligence follows a deterministic analytical execution model.
 
-| Capability | Objective |
-|------------|-----------|
-| Portfolio Health & Performance | Assess the overall quality and performance of the portfolio. |
-| Portfolio Risk Analysis | Evaluate portfolio-wide credit risk, concentration and exposure. |
-| Portfolio Segmentation | Compare portfolio performance across customer, product and geographic dimensions. |
-| Portfolio Trend Analysis | Monitor portfolio behaviour over time and identify emerging patterns. |
-| Portfolio Opportunity Analysis | Identify opportunities to optimise portfolio growth while maintaining acceptable risk. |
+Natural language portfolio queries are interpreted into **Analytical Business Objectives** using semantic similarity. Each business objective invokes a predefined analytical workflow consisting of one or more analytical capabilities.
 
-These capabilities collectively provide the analytical foundation for executive reporting, portfolio monitoring and strategic decision support.
+This approach ensures that:
+
+- Analytical execution remains deterministic, explainable and testable.
+- Business logic is separated from AI-generated narratives.
+- Analytical capabilities are reusable across multiple business objectives.
+- Large Language Models are used exclusively for explanation and narrative generation, not for determining analytical execution.
+
+The high-level analytical execution flow is illustrated below.
+
+```text
+Natural Language Query
+        │
+        ▼
+Analytical Business Objective
+        │
+        ▼
+Analytical Workflow
+        │
+        ▼
+Analytical Capabilities
+        │
+        ▼
+Portfolio Insights
+        │
+        ▼
+Recommendation Candidates
+```
 
 ---
 
-# 4. Illustrative Portfolio Intelligence Outcome
+# 4. Portfolio Analytical Capabilities
 
-The following example illustrates the type of outcome expected from the Portfolio Intelligence capability.
+Portfolio Intelligence enables portfolio-level analytical decision support by evaluating the overall health, performance and risk profile of the credit portfolio. Rather than focusing on individual customers, it provides strategic insights that support portfolio monitoring, risk management and business decision-making.
+
+The capability is organised into five core analytical domains.
+
+| Capability | Description |
+|------------|-------------|
+| **Portfolio Health & Performance** | Provides an overall assessment of portfolio quality, performance and operational health. |
+| **Portfolio Risk Analysis** | Evaluates portfolio-wide credit risk, exposure and concentration to identify areas requiring attention. |
+| **Portfolio Segmentation** | Compares portfolio behaviour across customer, product and geographic dimensions to identify performance variations. |
+| **Portfolio Trend Analysis** | Monitors changes in portfolio performance and risk over time to identify emerging patterns and early warning signals. |
+| **Portfolio Opportunity Analysis** | Identifies opportunities to optimise portfolio growth while maintaining an acceptable risk profile. |
+
+These capabilities define the functional scope of Portfolio Intelligence. Depending on the analytical business objective identified from a user's query, one or more analytical capabilities may be orchestrated to produce contextual portfolio insights and recommendation candidates.
+
+---
+
+# 5. Illustrative Portfolio Intelligence Outcome
+
+The following example demonstrates the expected analytical lifecycle of a typical portfolio intelligence request.
+
+### Example User Query
+
+> **"How healthy is our current portfolio?"**
+
+### Identified Analytical Business Objective
+
+**Assess Portfolio Health**
+
+### Analytical Capabilities Invoked
+
+- Portfolio Health & Performance
+- Portfolio Risk Analysis
+- Portfolio Trend Analysis
+- Portfolio Exposure Analysis
+
+### Example Portfolio Intelligence Response
 
 > **Portfolio Executive Summary**
 
-```
+```text
 ──────────────────────────────────────────────────────────────
             PORTFOLIO HEALTH DASHBOARD
 ──────────────────────────────────────────────────────────────
@@ -117,16 +174,24 @@ Key Insights
   low-risk customers with consistently high repayment behaviour.
 ```
 
-The Portfolio Agent complements this narrative with appropriate visualisations such as KPI cards, trend charts, distribution charts and segment comparisons to support business interpretation.
+The Portfolio Agent complements this narrative with appropriate visualisations such as KPI cards, trend charts, risk distributions, concentration charts and segment comparisons to improve business interpretation.
+
+> **Architectural Note**
+>
+> The Portfolio Agent does not execute every analytical capability for every request. Instead, it identifies the analytical business objective and orchestrates only the analytical capabilities required to satisfy that objective, ensuring focused, explainable and efficient portfolio analysis.
 
 ---
 
-## Document Evolution
+# Document Evolution
 
-This document will be progressively elaborated during SPK-02 as the following areas are defined:
+This document will be progressively elaborated during SPK-02 through the addition of the following sections:
 
-- Portfolio Analytics Catalogue
-- Portfolio KPI Catalogue
-- Portfolio Analytical Data Foundation
-- Logical Architecture
-- Portfolio Agent Design
+1. Analytical Business Objectives
+2. Analytical Workflows
+3. Portfolio Analytics Catalogue
+4. Portfolio KPI Catalogue
+5. Portfolio Analytical Data Foundation
+6. Portfolio Response Model
+7. Logical Architecture
+
+Each section builds upon the previous one to establish the complete functional and architectural foundation required to implement the Portfolio Intelligence capability within CRISP.
