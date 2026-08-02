@@ -182,6 +182,91 @@ The Portfolio Agent complements this narrative with appropriate visualisations s
 
 ---
 
+# 6. Portfolio Analytical Business Objectives
+
+Portfolio Intelligence supports multiple business objectives, each representing a distinct portfolio analysis scenario. After the Coordinator routes a request to the Portfolio Agent, the agent identifies the most appropriate business objective using semantic similarity.
+
+Each business objective defines **what business question is being answered**. The analytical workflow, required analytical capabilities and supporting KPIs are derived deterministically from the selected business objective.
+
+This approach ensures that portfolio analysis remains consistent, explainable and reusable while allowing users to interact using natural language.
+
+| Business Objective | Business Purpose | Example User Queries |
+|--------------------|------------------|----------------------|
+| **Assess Portfolio Health** | Evaluate the overall health and quality of the portfolio. | "How healthy is our portfolio?", "Give me a portfolio health summary." |
+| **Assess Portfolio Risk** | Analyse the overall credit risk profile and identify areas of concern. | "Where are the biggest portfolio risks?", "Show the highest risk areas." |
+| **Assess Portfolio Exposure** | Understand credit exposure and concentration across the portfolio. | "Where is our exposure concentrated?", "Which products carry the highest exposure?" |
+| **Assess Segment Performance** | Compare portfolio performance across customer, product or geographic segments. | "How are premium customers performing?", "Compare portfolio performance by region." |
+| **Assess Portfolio Trends** | Evaluate changes in portfolio performance and risk over time. | "How has the portfolio changed this quarter?", "Show utilisation trends." |
+| **Identify Portfolio Opportunities** | Identify opportunities for portfolio optimisation and business growth while maintaining acceptable risk. | "Which customers qualify for higher limits?", "Where are the portfolio growth opportunities?" |
+
+> **Design Principle**
+>
+> Portfolio Business Objectives are the orchestration layer of Portfolio Intelligence. They bridge natural language business questions and deterministic analytical execution, ensuring that similar business questions consistently produce the same analytical workflow regardless of how the question is phrased.
+
+
+# 7. Portfolio Analytical Workflows
+
+## Purpose
+
+Each Portfolio Analytical Business Objective is realised through a predefined analytical workflow.
+
+An analytical workflow defines the sequence of analytical capabilities required to satisfy a particular business objective. Rather than dynamically determining which analytics to execute, the Portfolio Agent invokes the workflow associated with the identified business objective.
+
+This approach ensures that portfolio analysis remains deterministic, reusable and explainable while providing consistent outcomes for semantically similar business questions.
+
+---
+
+## Workflow Design Principles
+
+Each analytical workflow:
+
+- Is associated with a single Portfolio Analytical Business Objective.
+- Invokes one or more analytical capabilities in a predefined sequence.
+- Produces consistent analytical outputs for similar business questions.
+- Can be reused across multiple user queries.
+- Forms the basis for portfolio summaries and recommendation candidates.
+
+---
+
+## Portfolio Analytical Workflow Catalogue
+
+| Business Objective | Analytical Workflow |
+|--------------------|---------------------|
+| Assess Portfolio Health | Portfolio Health Workflow |
+| Assess Portfolio Risk | Portfolio Risk Workflow |
+| Assess Portfolio Exposure | Portfolio Exposure Workflow |
+| Assess Segment Performance | Portfolio Segmentation Workflow |
+| Assess Portfolio Trends | Portfolio Trend Analysis Workflow |
+| Identify Portfolio Opportunities | Portfolio Opportunity Workflow |
+
+---
+
+## Conceptual Execution Flow
+
+```text
+User Query
+      │
+      ▼
+Portfolio Agent
+      │
+      ▼
+Identify Business Objective
+      │
+      ▼
+Select Analytical Workflow
+      │
+      ▼
+Execute Analytical Capabilities
+      │
+      ▼
+Generate Portfolio Insights
+      │
+      ▼
+Recommendation Candidates
+```
+
+The analytical workflows described in this section establish the orchestration layer of Portfolio Intelligence. The following section defines the analytical capabilities that comprise each workflow.
+
 # Document Evolution
 
 This document will be progressively elaborated during SPK-02 through the addition of the following sections:
