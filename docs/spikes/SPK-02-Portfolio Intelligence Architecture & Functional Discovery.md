@@ -265,7 +265,7 @@ Generate Portfolio Insights
 Recommendation Candidates
 ```
 
-The analytical workflows described in this section establish the orchestration layer of Portfolio Intelligence. The following section defines the analytical capabilities that comprise each workflow.
+The analytical workflows described in this section establish the orchestration layer of Portfolio Intelligence.
 
 -----
 
@@ -301,7 +301,7 @@ The Portfolio Analytics Catalogue follows the following principles:
 - Analytical capabilities produce structured analytical outputs that can be consumed by the Portfolio Summary Service and Recommendation Agent.
 - New analytical capabilities can be introduced without impacting existing workflows, provided they conform to the established analytical execution model.
 
-The subsequent section defines the Key Performance Indicators (KPIs) and business measures produced by these analytical capabilities.
+
 ---------
 
 # 9. Portfolio KPI Catalogue
@@ -336,7 +336,7 @@ The Portfolio KPI Catalogue follows the following principles:
 - KPI calculations are derived from the Portfolio Analytical Data Foundation and remain independent of presentation or visualisation.
 - Additional KPIs can be introduced without impacting the overall analytical architecture.
 
-The next section defines the Portfolio Analytical Data Foundation that provides the derived metrics, analytical views and business dimensions required to compute these KPIs.
+
 
 -------
 
@@ -393,7 +393,6 @@ The Portfolio Analytical Data Foundation serves as the analytical backbone of Po
 
 It decouples analytical computation from portfolio query execution by providing reusable, analytically ready datasets that support Portfolio Analytics Services, KPI generation and executive portfolio reporting.
 
-The subsequent sections define the Portfolio Response Model and the logical architecture that orchestrates these analytical components.
 
 -----------
 
@@ -476,3 +475,125 @@ The Portfolio Response Model follows the following principles:
 
 
 ------------
+
+# 12. Logical Architecture
+
+The logical architecture defines how the Portfolio Intelligence capability transforms a portfolio-related business question into structured analytical insights that can be consumed by business users and downstream intelligent agents.
+
+The architecture follows a layered and deterministic execution model, ensuring clear separation of responsibilities between query interpretation, analytical execution, business summarisation and recommendation generation.
+
+---
+
+## Logical Execution Flow
+
+```text
+                         User Query
+                              │
+                              ▼
+                 Coordinator (Semantic Routing)
+                              │
+                              ▼
+                      Portfolio Agent
+                              │
+                              ▼
+          Identify Portfolio Business Objective
+                              │
+                              ▼
+         Select Portfolio Analytical Workflow
+                              │
+                              ▼
+         Portfolio Analytics Service (CRA-13)
+                              │
+                              ▼
+         Portfolio Repository (CRA-12)
+                              │
+                              ▼
+            Portfolio Analytical Data Foundation
+                              │
+                              ▼
+          Portfolio Summary Service (CRA-14)
+                              │
+                ┌─────────────┴─────────────┐
+                ▼                           ▼
+      Portfolio Intelligence         Recommendation
+            Response                    Context
+                │                           │
+                └─────────────┬─────────────┘
+                              ▼
+                  Recommendation Agent
+```
+
+---
+
+## Component Responsibilities
+
+| Component | Responsibility |
+|-----------|----------------|
+| **Coordinator** | Identifies that the user's request belongs to the Portfolio Intelligence capability through semantic intent routing. |
+| **Portfolio Agent** | Determines the Portfolio Business Objective and orchestrates the appropriate analytical workflow. |
+| **Portfolio Analytics Service** | Executes the analytical capabilities required by the selected workflow and produces structured analytical results. |
+| **Portfolio Repository** | Provides access to analytically prepared portfolio datasets and derived metrics. |
+| **Portfolio Summary Service** | Transforms analytical outputs into executive-friendly portfolio summaries, insights and findings. |
+| **Recommendation Agent** | Consumes structured recommendation context and produces tailored business recommendations without performing portfolio analytics. |
+
+---
+
+## Architectural Layers
+
+The Portfolio Intelligence capability is organised into four logical layers.
+
+| Layer | Responsibility |
+|-------|----------------|
+| **Orchestration Layer** | Determines the business objective and coordinates analytical execution. |
+| **Analytics Layer** | Executes reusable portfolio analytical capabilities and KPI generation. |
+| **Data Layer** | Provides analytically prepared portfolio datasets, derived metrics and analytical views. |
+| **Presentation Layer** | Produces business summaries, visualisations and structured recommendation context. |
+
+---
+
+## Architectural Characteristics
+
+The logical architecture has been designed to satisfy the following architectural principles:
+
+- **Business Objective Driven** – Portfolio analysis is initiated from the identified business objective rather than predefined reports.
+- **Deterministic Execution** – Analytical workflows are predefined and produce consistent outcomes for equivalent business questions.
+- **Reusable Analytics** – Analytical capabilities are independent and reusable across multiple business objectives.
+- **Explainable Intelligence** – Every portfolio insight can be traced back to supporting KPIs and analytical evidence.
+- **Separation of Responsibilities** – Analytics, business summarisation and recommendation generation remain independent capabilities.
+- **Extensible Design** – New business objectives, workflows and analytical capabilities can be introduced without impacting existing components.
+
+---
+
+## End-to-End Architectural Traceability
+
+The Portfolio Intelligence capability follows a consistent progression from business intent to analytical outcome.
+
+```text
+User Query
+      │
+      ▼
+Portfolio Business Objective
+      │
+      ▼
+Analytical Workflow
+      │
+      ▼
+Analytical Capabilities
+      │
+      ▼
+Portfolio KPIs
+      │
+      ▼
+Analytical Data Foundation
+      │
+      ▼
+Business Insights & Findings
+      │
+      ▼
+Recommendation Context
+      │
+      ▼
+Recommendation Agent
+```
+
+This layered execution model establishes the architectural foundation for implementing CRA-12 through CRA-15 while maintaining the core CRISP principles of modularity, explainability, deterministic analytical execution and framework independence.
