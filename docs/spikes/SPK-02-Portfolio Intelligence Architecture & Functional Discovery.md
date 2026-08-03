@@ -46,7 +46,7 @@ Rather than retrieving operational data or performing transactional calculations
 - What trends are emerging over time?
 - What opportunities exist to improve portfolio performance?
 
-The outcome is an explainable portfolio assessment consisting of business insights, supporting analytical evidence and recommendation candidates that can be further tailored by downstream capabilities.
+The outcome is an explainable portfolio assessment consisting of business insights, supporting analytical evidence and Analytical Findings that can be further tailored by downstream capabilities.
 
 ---
 
@@ -81,7 +81,7 @@ Analytical Capabilities
 Portfolio Insights
         │
         ▼
-Recommendation Candidates
+Analytical Findings
 ```
 
 ---
@@ -100,7 +100,7 @@ The capability is organised into five core analytical domains.
 | **Portfolio Trend Analysis** | Monitors changes in portfolio performance and risk over time to identify emerging patterns and early warning signals. |
 | **Portfolio Opportunity Analysis** | Identifies opportunities to optimise portfolio growth while maintaining an acceptable risk profile. |
 
-These capabilities define the functional scope of Portfolio Intelligence. Depending on the analytical business objective identified from a user's query, one or more analytical capabilities may be orchestrated to produce contextual portfolio insights and recommendation candidates.
+These capabilities define the functional scope of Portfolio Intelligence. Depending on the analytical business objective identified from a user's query, one or more analytical capabilities may be orchestrated to produce contextual portfolio insights and Analytical Findings.
 
 ---
 
@@ -224,7 +224,7 @@ Each analytical workflow:
 - Invokes one or more analytical capabilities in a predefined sequence.
 - Produces consistent analytical outputs for similar business questions.
 - Can be reused across multiple user queries.
-- Forms the basis for portfolio summaries and recommendation candidates.
+- Forms the basis for portfolio summaries and Analytical Findings.
 
 ---
 
@@ -262,7 +262,7 @@ Execute Analytical Capabilities
 Generate Portfolio Insights
       │
       ▼
-Recommendation Candidates
+Analytical Findings
 ```
 
 The analytical workflows described in this section establish the orchestration layer of Portfolio Intelligence.
@@ -487,40 +487,27 @@ The architecture follows a layered and deterministic execution model, ensuring c
 ## Logical Execution Flow
 
 ```text
-                         User Query
-                              │
-                              ▼
-                 Coordinator (Semantic Routing)
-                              │
-                              ▼
-                      Portfolio Agent
-                              │
-                              ▼
-          Identify Portfolio Business Objective
-                              │
-                              ▼
-         Select Portfolio Analytical Workflow
-                              │
-                              ▼
-         Portfolio Analytics Service (CRA-13)
-                              │
-                              ▼
-         Portfolio Repository (CRA-12)
-                              │
-                              ▼
-            Portfolio Analytical Data Foundation
-                              │
-                              ▼
-          Portfolio Summary Service (CRA-14)
-                              │
-                ┌─────────────┴─────────────┐
-                ▼                           ▼
-      Portfolio Intelligence         Recommendation
-            Response                    Context
-                │                           │
-                └─────────────┬─────────────┘
-                              ▼
-                  Recommendation Agent
+                                      Portfolio Intelligence
+
+User Query
+      │
+      ▼
+Coordinator
+      │
+      ▼
+Portfolio Agent
+      │
+      ▼
+Portfolio Analytics Service
+      │
+      ▼
+Portfolio Summary Service
+      │
+      ▼
+Portfolio Intelligence Response
+      │
+      ▼
+Recommendation Agent
 ```
 
 ---
@@ -547,7 +534,7 @@ The Portfolio Intelligence capability is organised into four logical layers.
 | **Orchestration Layer** | Determines the business objective and coordinates analytical execution. |
 | **Analytics Layer** | Executes reusable portfolio analytical capabilities and KPI generation. |
 | **Data Layer** | Provides analytically prepared portfolio datasets, derived metrics and analytical views. |
-| **Presentation Layer** | Produces business summaries, visualisations and structured recommendation context. |
+| **Insight Layer** | Produces business summaries, visualisations and structured recommendation context. |
 
 ---
 
