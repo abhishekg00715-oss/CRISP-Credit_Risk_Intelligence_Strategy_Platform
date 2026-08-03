@@ -15,7 +15,7 @@ The solution follows a local-first architecture using PDFs, ChromaDB, SQLite, an
 | --------------------- | -------------------------------------------- | -------------------------------------- |
 | Policy Knowledge      | Credit policies and underwriting rules       | Policy Agent                           |
 | Customer Data         | Customer credit profiles and risk indicators | Customer Agent                         |
-| Portfolio Data        | Portfolio performance and risk trends        | Portfolio Agent                        |
+| Portfolio Intelligence| Portfolio-level analytical datasets, KPIs and derived metrics| Portfolio Agent        |
 | Decision Intelligence | Recommendations, evidence, and explanations  | Recommendation & Explainability Agents |
 
 ---
@@ -30,7 +30,12 @@ Customer
     └── Credit Profile
 
 Portfolio
-    └── Segment Metrics
+    ├── Portfolio Summary
+    ├── Portfolio Risk
+    ├── Portfolio Exposure
+    ├── Portfolio Segmentation
+    ├── Portfolio Trends
+    └── Portfolio Opportunities
 
 Assessment
     ├── Recommendation
@@ -41,15 +46,21 @@ Assessment
 
 ## Entity Summary
 
-| Entity          | Description                                               |
-| --------------- | --------------------------------------------------------- |
-| Policy Document | Lending policies and underwriting guidelines              |
-| Policy Rule     | Eligibility and credit risk rules extracted from policies |
-| Customer        | Customer demographic and financial information            |
-| Credit Profile  | Credit score, utilization, and repayment indicators       |
-| Portfolio       | Historical portfolio performance metrics                  |
-| Assessment      | Credit evaluation outcome                                 |
-| Evidence        | Supporting information used in recommendations            |
+| Entity | Description |
+|---------|-------------|
+| Policy Document | Lending policies and underwriting guidelines |
+| Policy Rule | Eligibility and credit risk rules extracted from policies |
+| Customer | Customer demographic and financial information |
+| Credit Profile | Credit score, utilisation and repayment indicators |
+| Portfolio | Logical representation of the overall credit portfolio |
+| Portfolio Summary | Aggregated portfolio health and performance measures |
+| Portfolio Risk | Portfolio-wide credit risk indicators |
+| Portfolio Exposure | Portfolio exposure and concentration metrics |
+| Portfolio Segmentation | Comparative analytics across business dimensions |
+| Portfolio Trends | Historical portfolio performance indicators |
+| Portfolio Opportunities | Derived portfolio growth and optimisation indicators |
+| Assessment | Credit evaluation outcome |
+| Evidence | Supporting information used in recommendations |
 
 ---
 
@@ -69,7 +80,12 @@ Assessment
     └── Evidence
 
 Portfolio
-    └── Segment Metrics
+    ├── Portfolio Summary
+    ├── Portfolio Risk
+    ├── Portfolio Exposure
+    ├── Portfolio Segmentation
+    ├── Portfolio Trends
+    └── Portfolio Opportunities
 ```
 
 ---
@@ -118,16 +134,27 @@ data/vector_store/chroma_db/
 
 ---
 
-### Portfolio Repository
+### Portfolio Analytical Repository
 
-| Component         | Technology   |
-| ----------------- | ------------ |
-| Portfolio Metrics | CSV / SQLite |
+| Repository Artifact | Implementation |
+|---------------------|----------------|
+| Database Technology | SQLite |
+| Database File | src/database/portfolio_analytics.db |
+| Repository | PortfolioRepository |
+| Data Generator Pipeline | portfolio_data_generator/ |
+| Data Source | Customer Operational Repository |
 
-**Storage Location**
+**Analytical Datasets**
 
-```text
-data/portfolio/
+| Dataset | Purpose |
+|---------|---------|
+| Portfolio Summary | Portfolio health and performance metrics |
+| Portfolio Risk | Portfolio-wide risk measures |
+| Portfolio Exposure | Exposure and concentration metrics |
+| Portfolio Segmentation | Customer, product and geographic analytics |
+| Portfolio Trends | Historical portfolio analytics |
+| Portfolio Opportunities | Portfolio optimisation indicators |
+
 ```
 
 ---
@@ -138,8 +165,8 @@ data/portfolio/
 | -------------------- | ---------------------------- |
 | Policy Agent         | Policy Documents, Embeddings |
 | Customer Agent       | Customer Profiles            |
-| Portfolio Agent      | Portfolio Metrics            |
-| Recommendation Agent | Assessments, Risk Scores     |
+| Portfolio Agent      | Portfolio Analytical Datasets|
+| Recommendation Agent | Recommendations, Recommendation Context|
 | Explainability Agent | Evidence, Citations          |
 
 ---
@@ -172,22 +199,25 @@ Risk Assessment
 Recommendation
 ```
 
-### Portfolio Analysis
+### Portfolio Intelligence
 
 ```text
-Portfolio Dataset
+Customer Operational Repository
  ↓
-Trend Analysis
+Portfolio Data Generator
  ↓
-Risk Insights
+Portfolio Analytical Repository
+ ↓
+Portfolio Analytics
+ ↓
+Portfolio Summary
 ```
-
 ---
 
 ## Data Design Principles
 
-1. Separate structured and unstructured data.
-2. Maintain explainable evidence for all recommendations.
-3. Use synthetic data for demonstrations and testing.
+1. Separate operational, analytical and unstructured data.
+2. Maintain explainable evidence for all analytical outcomes and recommendations.
+3. Store derived portfolio analytics separately from transactional customer data.
 4. Prefer local storage over cloud dependencies.
-5. Support future agent expansion without major redesign.
+5. Support modular agent expansion without major redesign.
