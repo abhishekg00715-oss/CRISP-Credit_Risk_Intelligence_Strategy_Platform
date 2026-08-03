@@ -20,15 +20,11 @@ from pathlib import Path
 import sqlite3
 
 from src.database.portfolio_schema import SCHEMA_DEFINITION
+from src.config.portfolio_config import (
+    DATABASE_DIRECTORY,
+    DATABASE_PATH,
+)
 
-# ------------------------------------------------------------------
-# Database Configuration
-# ------------------------------------------------------------------
-
-DATABASE_DIRECTORY = Path("src/database")
-DATABASE_NAME = "portfolio_analytics.db"
-
-DATABASE_PATH = DATABASE_DIRECTORY / DATABASE_NAME
 
 
 # ------------------------------------------------------------------
