@@ -41,8 +41,16 @@ from src.database.portfolio_data_generator.opportunity_generator import (
     generate_portfolio_opportunities,
 )
 
+GENERATORS = [
+    ("Portfolio Summary", generate_portfolio_summary),
+    ("Portfolio Risk", generate_portfolio_risk),
+    ("Portfolio Exposure", generate_portfolio_exposure),
+    ("Portfolio Segmentation", generate_portfolio_segmentation),
+    ("Portfolio Trends", generate_portfolio_trends),
+    ("Portfolio Opportunities", generate_portfolio_opportunities),
+    ]
 
-def load_portfolio_repository() -> None:
+def load_portfolio_repository(selected_generators=None):
     """
     Builds the Portfolio Analytical Repository.
 
@@ -52,31 +60,25 @@ def load_portfolio_repository() -> None:
     2. Generate analytical datasets.
     3. Populate analytical repository.
     """
-
-    print("Initialising Portfolio Repository...")
-
+    print("=" * 60)
+    print("Building Portfolio Analytical Repository")
+    print("=" * 60)
+    
     initialise_database()
 
-    print("Generating Portfolio Summary...")
-    generate_portfolio_summary()
+    for name, generator in selected_generators or GENERATORS:
+        try:
+            print(f"Generating {name}...")
+            generator()
+            print(f"{name} completed.")
+            
+        except Exception as ex:
+            print(f"{name} failed: {ex}")
+            raise
 
-    print("Generating Portfolio Risk...")
-    generate_portfolio_risk()
-
-    print("Generating Portfolio Exposure...")
-    generate_portfolio_exposure()
-
-    print("Generating Portfolio Segmentation...")
-    generate_portfolio_segmentation()
-
-    print("Generating Portfolio Trends...")
-    generate_portfolio_trends()
-
-    print("Generating Portfolio Opportunities...")
-    generate_portfolio_opportunities()
-
-    print("Portfolio Repository successfully populated.")
-
+    print("=" * 60)
+    print("Portfolio Repository successfully generated.")
+    print("=" * 60)
 
 if __name__ == "__main__":
     load_portfolio_repository()
