@@ -21,7 +21,7 @@ from src.database.portfolio_queries import GET_CUSTOMER_PORTFOLIO_DATA
 
 from src.database.portfolio_schema import PORTFOLIO_SUMMARY
 
-from src.database.base_generator import (
+from src.database.portfolio_data generator.base_generator import (
     fetch_rows,
     truncate_table,
     insert_rows,
