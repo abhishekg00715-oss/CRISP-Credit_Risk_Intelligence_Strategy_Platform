@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS {PORTFOLIO_EXPOSURE} (
 
     product_type               TEXT,
 
-    region                     TEXT,
+    state                     TEXT,
 
     exposure_amount            REAL,
 
@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS {PORTFOLIO_EXPOSURE} (
     PRIMARY KEY (
         snapshot_date,
         product_type,
-        region
+        state
     )
 );
 """
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS {PORTFOLIO_SEGMENTATION} (
 
     product_type               TEXT,
 
-    region                     TEXT,
+    state                     TEXT,
 
     customer_count             INTEGER,
 
