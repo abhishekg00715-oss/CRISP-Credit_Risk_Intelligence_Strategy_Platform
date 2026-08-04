@@ -5,13 +5,16 @@ Generates the Portfolio Trends analytical dataset.
 
 Responsibilities
 ----------------
-- Retrieve operational portfolio activity metrics.
-- Aggregate portfolio-level trend metrics.
+- Analyse portfolio behavioural indicators from the available
+  operational data.
+- Produce trend-oriented portfolio metrics.
 - Populate the Portfolio Trends analytical table.
 
-This generator captures periodic portfolio measurements.
-Trend interpretation and analysis are performed by the
-Portfolio Analytics Service (CRA-13).
+The current implementation analyses the latest portfolio snapshot
+produced by the ETL pipeline. The design intentionally remains
+extensible to support historical portfolio snapshots in future
+iterations without changing the generator interface.
+
 
 """
 
@@ -67,15 +70,15 @@ def generate_portfolio_trends() -> None:
     analytical_rows = []
 
     # --------------------------------------------------------------
-    # Transaction Metrics
+    # Transaction Behaviour Indicators
     # --------------------------------------------------------------
+
+    transaction_count = len(transaction_rows)
 
     total_transaction_value = sum(
         row["transaction_amount"] or 0.0
         for row in transaction_rows
     )
-
-    transaction_count = len(transaction_rows)
 
     average_transaction_value = (
         round(total_transaction_value / transaction_count, 2)
@@ -107,24 +110,24 @@ def generate_portfolio_trends() -> None:
     )
 
     # --------------------------------------------------------------
-    # Digital Activity Metrics
+    # Digital Behaviour Indicators
     # --------------------------------------------------------------
 
-    total_logins = sum(
-        row["login_count"] or 0
-        for row in digital_rows
-    )
-
-    active_customers = len(
+    active_digital_customers = len(
         {
             row["customer_id"]
             for row in digital_rows
         }
     )
 
+    total_logins = sum(
+        row["login_count"] or 0
+        for row in digital_rows
+    )
+
     average_logins = (
-        round(total_logins / active_customers, 2)
-        if active_customers
+        round(total_logins / active_digital_customers, 2)
+        if active_digital_customers
         else 0.0
     )
 
@@ -132,14 +135,14 @@ def generate_portfolio_trends() -> None:
         [
             (
                 snapshot_date,
-                "Digital Login Count",
-                total_logins,
+                "Active Digital Customers",
+                active_digital_customers,
                 "Current Snapshot",
             ),
             (
                 snapshot_date,
-                "Active Digital Customers",
-                active_customers,
+                "Total Digital Logins",
+                total_logins,
                 "Current Snapshot",
             ),
             (
@@ -152,7 +155,7 @@ def generate_portfolio_trends() -> None:
     )
 
     # --------------------------------------------------------------
-    # Persist Dataset
+    # Persist Analytical Dataset
     # --------------------------------------------------------------
 
     insert_rows(
