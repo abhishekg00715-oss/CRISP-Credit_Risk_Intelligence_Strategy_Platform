@@ -110,9 +110,11 @@ CREATE TABLE IF NOT EXISTS portfolio_segmentation (
 
     customer_segment           TEXT,
 
-    product_type               TEXT,
-
     state                      TEXT,
+
+    employment_type            TEXT,
+
+    occupation                 TEXT,
 
     customer_count             INTEGER,
 
@@ -123,8 +125,9 @@ CREATE TABLE IF NOT EXISTS portfolio_segmentation (
     PRIMARY KEY (
         snapshot_date,
         customer_segment,
-        product_type,
-        state
+        state,
+        employment_type,
+        occupation
     )
 );
 """
