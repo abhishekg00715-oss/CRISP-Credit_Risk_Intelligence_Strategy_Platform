@@ -19,7 +19,7 @@ GET_CUSTOMER_PORTFOLIO_DATA = """
 SELECT
     cm.customer_id,
     cm.customer_segment,
-    cm.region,
+    cm.state,
     cb.credit_score,
     cb.credit_utilisation,
     cb.debt_to_income_ratio,
