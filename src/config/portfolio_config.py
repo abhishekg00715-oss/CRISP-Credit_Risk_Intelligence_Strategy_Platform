@@ -19,6 +19,7 @@ DATABASE_DIRECTORY = Path("src/database")
 DATABASE_NAME = "portfolio_analytics.db"
 
 DATABASE_PATH = DATABASE_DIRECTORY / DATABASE_NAME
+PORTFOLIO_DATABASE_PATH = DATABASE_PATH
 
 
 # ------------------------------------------------------------------

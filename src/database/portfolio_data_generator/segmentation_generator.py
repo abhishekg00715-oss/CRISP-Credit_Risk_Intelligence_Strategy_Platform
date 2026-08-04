@@ -87,7 +87,7 @@ def generate_portfolio_segmentation() -> None:
 
         segmentation_summary[key]["customer_count"] += 1
         segmentation_summary[key]["credit_score_total"] += row["credit_score"]
-        segmentation_summary[key]["utilisation_total"] += row["credit_utilisation"]
+        segmentation_summary[key]["utilisation_total"] += row["credit_utilization"]
 
     # --------------------------------------------------------------
     # Refresh Analytical Dataset

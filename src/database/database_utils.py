@@ -17,6 +17,20 @@ from pathlib import Path
 from src.database.schema import DATABASE_SCHEMA
 
 
+def get_connection(database_name: str = "customer_risk.db") -> sqlite3.Connection:
+    """
+    Create and return a connection to the Customer Operational database.
+    """
+
+    database_path = Path(__file__).parent / database_name
+
+    connection = sqlite3.connect(database_path)
+    connection.row_factory = sqlite3.Row
+    connection.execute("PRAGMA foreign_keys = ON;")
+
+    return connection
+
+
 class DatabaseManager:
     """
     Generic SQLite database manager.

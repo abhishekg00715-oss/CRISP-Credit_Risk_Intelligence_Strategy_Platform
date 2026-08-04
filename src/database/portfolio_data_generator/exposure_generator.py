@@ -94,7 +94,7 @@ def generate_portfolio_exposure() -> None:
 
     for row in card_rows:
 
-        exposure = row["current_balance"] or 0.0
+        exposure = row["outstanding_balance"] or 0.0
 
         key = (
             row["card_type"],

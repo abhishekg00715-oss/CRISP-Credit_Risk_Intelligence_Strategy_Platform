@@ -88,7 +88,7 @@ def generate_portfolio_risk() -> None:
 
         risk_summary[band]["customers"] += 1
         risk_summary[band]["credit_score"] += row["credit_score"]
-        risk_summary[band]["defaults"] += row["default_history"]
+        risk_summary[band]["defaults"] += row["defaults"]
 
         #
         # Exposure will be enhanced in Exposure Generator.

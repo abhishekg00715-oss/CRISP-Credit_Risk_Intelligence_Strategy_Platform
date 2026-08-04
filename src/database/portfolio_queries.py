@@ -23,9 +23,9 @@ SELECT
     cm.customer_segment,
     cm.state,
     cb.credit_score,
-    cb.credit_utilisation,
-    cb.debt_to_income_ratio,
-    cb.default_history
+    cb.credit_utilization as credit_utilisation,
+    cb.dti_ratio,
+    cb.defaults as default_history
 FROM customer_master cm
 INNER JOIN credit_bureau cb
     ON cm.customer_id = cb.customer_id
@@ -39,9 +39,9 @@ GET_CUSTOMER_RISK_DATA = """
 SELECT
     customer_id,
     credit_score,
-    credit_utilisation,
-    debt_to_income_ratio,
-    default_history
+    credit_utilization,
+    dti_ratio,
+    defaults
 FROM credit_bureau
 """
 
@@ -69,7 +69,7 @@ SELECT
     cm.customer_segment,
     cc.card_type,
     cc.credit_limit,
-    cc.current_balance
+    cc.outstanding_balance
 FROM credit_card_accounts cc
 INNER JOIN customer_master cm
     ON cc.customer_id = cm.customer_id
@@ -87,9 +87,9 @@ SELECT
     cm.employment_type,
     cm.occupation,
     cb.credit_score,
-    cb.credit_utilisation,
-    cb.debt_to_income_ratio,
-    cb.default_history
+    cb.credit_utilization,
+    cb.dti_ratio,
+    cb.defaults
 FROM customer_master cm
 INNER JOIN credit_bureau cb
     ON cm.customer_id = cb.customer_id
@@ -112,10 +112,10 @@ ORDER BY transaction_date
 GET_DIGITAL_ACTIVITY = """
 SELECT
     customer_id,
-    login_date,
-    login_count
+    login_timestamp AS login_date,
+    1 AS login_count
 FROM digital_behavior
-ORDER BY login_date
+ORDER BY login_timestamp
 """
 
 # ================================================================
@@ -129,11 +129,11 @@ SELECT
     cm.state,
     cm.annual_income,
     cb.credit_score,
-    cb.credit_utilisation,
-    cb.default_history,
+    cb.credit_utilization,
+    cb.defaults,
     cc.card_type,
     cc.credit_limit,
-    cc.current_balance
+    cc.outstanding_balance
 FROM customer_master cm
 INNER JOIN credit_bureau cb
     ON cm.customer_id = cb.customer_id

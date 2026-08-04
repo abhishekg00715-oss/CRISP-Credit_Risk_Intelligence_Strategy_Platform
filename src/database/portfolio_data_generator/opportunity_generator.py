@@ -93,8 +93,8 @@ def generate_portfolio_opportunities() -> None:
 
         if (
             row["credit_score"] >= HIGH_CREDIT_SCORE
-            and row["credit_utilisation"] <= LOW_UTILISATION
-            and row["default_history"] == NO_DEFAULT_HISTORY
+            and row["credit_utilization"] <= LOW_UTILISATION
+            and row["defaults"] == NO_DEFAULT_HISTORY
         ):
 
             opportunity_summary["Credit Limit Enhancement"][
@@ -113,7 +113,7 @@ def generate_portfolio_opportunities() -> None:
         # Credit Utilisation Review
         # ------------------------------------------
 
-        elif row["credit_utilisation"] >= HIGH_UTILISATION:
+        elif row["credit_utilization"] >= HIGH_UTILISATION:
 
             opportunity_summary["Credit Utilisation Review"][
                 "eligible_customers"
@@ -121,7 +121,7 @@ def generate_portfolio_opportunities() -> None:
 
             opportunity_summary["Credit Utilisation Review"][
                 "estimated_value"
-            ] += row["current_balance"]
+            ] += row["outstanding_balance"]
 
             opportunity_summary["Credit Utilisation Review"][
                 "confidence_score"
