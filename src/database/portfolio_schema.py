@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS {PORTFOLIO_EXPOSURE} (
 # ------------------------------------------------------------------
 
 CREATE_PORTFOLIO_SEGMENTATION_TABLE = f"""
-CREATE TABLE IF NOT EXISTS {PORTFOLIO_SEGMENTATION} (
+CREATE TABLE IF NOT EXISTS portfolio_segmentation (
 
     snapshot_date              TEXT,
 
@@ -112,7 +112,7 @@ CREATE TABLE IF NOT EXISTS {PORTFOLIO_SEGMENTATION} (
 
     product_type               TEXT,
 
-    state                     TEXT,
+    state                      TEXT,
 
     customer_count             INTEGER,
 
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS {PORTFOLIO_SEGMENTATION} (
         snapshot_date,
         customer_segment,
         product_type,
-        region
+        state
     )
 );
 """
