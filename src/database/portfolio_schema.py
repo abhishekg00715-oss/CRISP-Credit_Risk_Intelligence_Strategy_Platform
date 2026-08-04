@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS {PORTFOLIO_EXPOSURE} (
 # ------------------------------------------------------------------
 
 CREATE_PORTFOLIO_SEGMENTATION_TABLE = f"""
-CREATE TABLE IF NOT EXISTS portfolio_segmentation (
+CREATE TABLE IF NOT EXISTS {PORTFOLIO_SEGMENTATION} (
 
     snapshot_date              TEXT,
 
