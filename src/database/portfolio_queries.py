@@ -11,6 +11,8 @@ Responsibilities
 - Keep business calculations outside SQL.
 
 
+"""
+
 # ================================================================
 # Portfolio Summary
 # ================================================================
@@ -49,20 +51,28 @@ FROM credit_bureau
 
 GET_LOAN_EXPOSURE_DATA = """
 SELECT
-    customer_id,
-    loan_type,
-    outstanding_balance,
-    loan_status
-FROM loan_accounts
+    cm.customer_id,
+    cm.state,
+    cm.customer_segment,
+    la.loan_type,
+    la.outstanding_balance,
+    la.loan_status
+FROM loan_accounts la
+INNER JOIN customer_master cm
+    ON la.customer_id = cm.customer_id
 """
 
 GET_CARD_EXPOSURE_DATA = """
 SELECT
-    customer_id,
-    card_type,
-    credit_limit,
-    current_balance
-FROM credit_card_accounts
+    cm.customer_id,
+    cm.state,
+    cm.customer_segment,
+    cc.card_type,
+    cc.credit_limit,
+    cc.current_balance
+FROM credit_card_accounts cc
+INNER JOIN customer_master cm
+    ON cc.customer_id = cm.customer_id
 """
 
 # ================================================================
@@ -73,9 +83,13 @@ GET_SEGMENTATION_DATA = """
 SELECT
     cm.customer_id,
     cm.customer_segment,
-    cm.region,
+    cm.state,
+    cm.employment_type,
+    cm.occupation,
     cb.credit_score,
-    cb.credit_utilisation
+    cb.credit_utilisation,
+    cb.debt_to_income_ratio,
+    cb.default_history
 FROM customer_master cm
 INNER JOIN credit_bureau cb
     ON cm.customer_id = cb.customer_id
@@ -112,16 +126,17 @@ GET_OPPORTUNITY_DATA = """
 SELECT
     cm.customer_id,
     cm.customer_segment,
+    cm.state,
+    cm.annual_income,
     cb.credit_score,
     cb.credit_utilisation,
     cb.default_history,
+    cc.card_type,
     cc.credit_limit,
     cc.current_balance
 FROM customer_master cm
-
 INNER JOIN credit_bureau cb
     ON cm.customer_id = cb.customer_id
-
 LEFT JOIN credit_card_accounts cc
     ON cm.customer_id = cc.customer_id
 """
