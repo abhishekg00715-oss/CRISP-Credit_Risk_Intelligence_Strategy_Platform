@@ -78,8 +78,8 @@ Implemented features include:
 # High-Level Architecture
 
 
+<img width="1536" height="1024" alt="version2 architecture Jul 29, 2026, 05_42_17 PM" src="https://github.com/user-attachments/assets/490e56e9-28a9-4b53-b7cc-5a70dba567d2" />
 
-<img width="1536" height="1024" alt="Architecture Jul 19, 2026, 03_35_46 PM" src="https://github.com/user-attachments/assets/5e9d9711-2318-4b66-864f-c82d3937e0db" />
 
 
 **Current AI Orchestration Layer**
