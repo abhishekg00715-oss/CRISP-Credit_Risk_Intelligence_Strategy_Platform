@@ -253,7 +253,11 @@ src/
 ├── logging/
 ├── config/
 ├── UI/
-└── tests/
+└── logs/
+└── initialization/
+└── tools/
+└── workflows/
+
 ```
 
 ---
