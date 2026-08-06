@@ -253,9 +253,9 @@ src/
 ├── logging/
 ├── config/
 ├── UI/
-└── logs/
-└── initialization/
-└── tools/
+├──logs/
+├── initialization/
+├──tools/
 └── workflows/
 
 ```
