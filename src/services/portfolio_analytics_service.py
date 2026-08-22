@@ -97,7 +97,7 @@ class PortfolioAnalyticsService:
             "risk": self.risk_service.analyze_risk_distribution(),
             "exposure": self.exposure_service.analyze_exposure(),
             "segmentation": (
-                self.segment_service.analyze_segmentation()
+                self.segment_service.analyze_segments()
             ),
         }
 
@@ -180,7 +180,7 @@ class PortfolioAnalyticsService:
         Return portfolio segmentation analytics.
         """
 
-        return self.segment_service.analyze_segmentation()
+        return self.segment_service.analyze_segments()
 
     def get_segment_distribution(self) -> list[dict]:
         """
