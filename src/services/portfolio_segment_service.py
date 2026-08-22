@@ -168,7 +168,7 @@ class PortfolioSegmentService:
     # Customer Distribution
     # --------------------------------------------------------------
 
-    def get_customer_distribution(self) -> List[Dict[str, Any]]:
+    def get_segment_distribution(self) -> List[Dict[str, Any]]:
         """
         Return segment records with customer population percentage.
 
