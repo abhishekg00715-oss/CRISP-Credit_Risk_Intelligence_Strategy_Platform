@@ -1,37 +1,21 @@
 """
 portfolio_analytics_service_smoke_test.py
 
-Purpose
--------
 Smoke test for the Portfolio Analytics Service.
 
 Responsibilities
 ----------------
 - Validate PortfolioAnalyticsService initialization.
-- Validate integration with specialised portfolio analytics services.
-- Verify that analytical methods execute successfully.
-- Verify basic response structure.
-- Confirm that the CRA-13 analytical service layer is operational.
+- Validate existing KPI, risk, exposure and segmentation
+  analytics.
+- Validate newly added trend analytics.
+- Validate newly added opportunity analytics.
+- Validate integration of all analytical services through
+  PortfolioAnalyticsService.
+- Validate the consolidated analytical snapshot.
 
-This is intentionally a lightweight integration smoke test rather
-than a detailed unit-test suite.
-
-Expected Architecture
----------------------
-Portfolio Analytical Repository
-            |
-            v
-    PortfolioRepository
-            |
-            v
-+-----------------------------------+
-|   Portfolio Analytics Services    |
-|                                   |
-| KPI | Segment | Risk | Exposure   |
-+-----------------------------------+
-            |
-            v
-  PortfolioAnalyticsService
+This is a lightweight integration smoke test and is not intended
+to replace detailed unit tests.
 """
 
 from pathlib import Path
@@ -42,12 +26,14 @@ import sys
 # Repository Root
 # ------------------------------------------------------------------
 
-REPO_ROOT = str(
-    Path(__file__).resolve().parents[2]
-)
+REPO_ROOT = Path(__file__).resolve().parents[3]
 
-if REPO_ROOT not in sys.path:
-    sys.path.insert(0, REPO_ROOT)
+if str(REPO_ROOT) not in sys.path:
+
+    sys.path.insert(
+        0,
+        str(REPO_ROOT)
+    )
 
 
 # ------------------------------------------------------------------
@@ -60,324 +46,770 @@ from src.services.portfolio_analytics_service import (
 
 
 # ------------------------------------------------------------------
-# Test Helpers
+# Test Utilities
 # ------------------------------------------------------------------
 
-def print_result(
-    test_name: str,
-    passed: bool,
-) -> None:
+PASS = "[PASS]"
+FAIL = "[FAIL]"
 
-    status = "PASS" if passed else "FAIL"
+
+def check(
+    test_name: str,
+    condition: bool,
+) -> bool:
+
+    status = PASS if condition else FAIL
 
     print(
-        f"{test_name:<50} [{status}]"
+        f"{test_name:<50} {status}"
     )
 
-
-def validate_dict_response(
-    response,
-    required_keys=None,
-) -> bool:
-    """
-    Validate that a service response is a dictionary and,
-    optionally, contains the expected keys.
-    """
-
-    if not isinstance(response, dict):
-        return False
-
-    if required_keys:
-
-        return all(
-            key in response
-            for key in required_keys
-        )
-
-    return True
-
-
-def validate_list_response(
-    response,
-) -> bool:
-    """
-    Validate that a service response is a list.
-    """
-
-    return isinstance(response, list)
+    return condition
 
 
 # ------------------------------------------------------------------
-# Main Smoke Test
+# Smoke Test
 # ------------------------------------------------------------------
 
 def run_smoke_test() -> bool:
 
     print()
-
     print("=" * 70)
-
-    print(
-        "Portfolio Analytics Service : Smoke Test"
-    )
-
+    print("Portfolio Analytics Service : Smoke Test")
     print("=" * 70)
 
     all_passed = True
 
-    try:
+    # --------------------------------------------------------------
+    # Initialization
+    # --------------------------------------------------------------
 
-        # ----------------------------------------------------------
-        # Service Initialization
-        # ----------------------------------------------------------
+    try:
 
         analytics_service = (
             PortfolioAnalyticsService()
         )
 
-        print_result(
+        all_passed &= check(
             "PortfolioAnalyticsService initialization",
-            True,
+            analytics_service is not None,
         )
 
-        # ----------------------------------------------------------
-        # KPI Analytics
-        # ----------------------------------------------------------
+    except Exception as exc:
 
-        kpis = (
-            analytics_service.get_kpis()
+        print(
+            f"{FAIL} PortfolioAnalyticsService initialization"
         )
 
-        passed = validate_dict_response(
-            kpis
+        print(
+            f"      Error: {exc}"
         )
 
-        print_result(
+        return False
+
+    # --------------------------------------------------------------
+    # KPI Analytics
+    # --------------------------------------------------------------
+
+    try:
+
+        result = analytics_service.get_kpis()
+
+        all_passed &= check(
             "Portfolio KPI analytics",
-            passed,
+            isinstance(result, dict)
+            and len(result) > 0,
         )
 
-        all_passed &= passed
+    except Exception as exc:
 
-        # ----------------------------------------------------------
-        # Risk Analysis
-        # ----------------------------------------------------------
-
-        risk_analysis = (
-            analytics_service.get_risk_analysis()
+        print(
+            f"{FAIL} Portfolio KPI analytics"
         )
 
-        passed = validate_dict_response(
-            risk_analysis
+        print(
+            f"      Error: {exc}"
         )
 
-        print_result(
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Risk Analytics
+    # --------------------------------------------------------------
+
+    try:
+
+        result = analytics_service.get_risk_analysis()
+
+        all_passed &= check(
             "Portfolio risk analysis",
-            passed,
+            isinstance(result, dict)
+            and len(result) > 0,
         )
 
-        all_passed &= passed
+    except Exception as exc:
 
-        # ----------------------------------------------------------
-        # Risk Distribution
-        # ----------------------------------------------------------
-
-        risk_distribution = (
-            analytics_service.get_risk_distribution()
+        print(
+            f"{FAIL} Portfolio risk analysis"
         )
 
-        passed = validate_list_response(
-            risk_distribution
+        print(
+            f"      Error: {exc}"
         )
 
-        print_result(
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Risk Customer Distribution
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
+            analytics_service
+            .get_risk_distribution()
+        )
+
+        all_passed &= check(
             "Risk customer distribution",
-            passed,
+            isinstance(result, list),
         )
 
-        all_passed &= passed
+    except Exception as exc:
 
-        # ----------------------------------------------------------
-        # Risk Exposure Distribution
-        # ----------------------------------------------------------
+        print(
+            f"{FAIL} Risk customer distribution"
+        )
 
-        risk_exposure = (
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Risk Exposure Distribution
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
             analytics_service
             .get_risk_exposure_distribution()
         )
 
-        passed = validate_list_response(
-            risk_exposure
-        )
-
-        print_result(
+        all_passed &= check(
             "Risk exposure distribution",
-            passed,
+            isinstance(result, list),
         )
 
-        all_passed &= passed
+    except Exception as exc:
 
-        # ----------------------------------------------------------
-        # Exposure Analysis
-        # ----------------------------------------------------------
+        print(
+            f"{FAIL} Risk exposure distribution"
+        )
 
-        exposure_analysis = (
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Exposure Analytics
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
             analytics_service
             .get_exposure_analysis()
         )
 
-        passed = validate_dict_response(
-            exposure_analysis
-        )
-
-        print_result(
+        all_passed &= check(
             "Portfolio exposure analysis",
-            passed,
+            isinstance(result, dict)
+            and len(result) > 0,
         )
 
-        all_passed &= passed
+    except Exception as exc:
 
-        # ----------------------------------------------------------
-        # Product Exposure
-        # ----------------------------------------------------------
+        print(
+            f"{FAIL} Portfolio exposure analysis"
+        )
 
-        product_exposure = (
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Product Exposure
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
             analytics_service
             .get_product_exposure()
         )
 
-        passed = validate_list_response(
-            product_exposure
-        )
-
-        print_result(
+        all_passed &= check(
             "Product exposure analysis",
-            passed,
+            isinstance(result, list),
         )
 
-        all_passed &= passed
+    except Exception as exc:
 
-        # ----------------------------------------------------------
-        # Geographic Exposure
-        # ----------------------------------------------------------
+        print(
+            f"{FAIL} Product exposure analysis"
+        )
 
-        geographic_exposure = (
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Geographic Exposure
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
             analytics_service
             .get_geographic_exposure()
         )
 
-        passed = validate_list_response(
-            geographic_exposure
-        )
-
-        print_result(
+        all_passed &= check(
             "Geographic exposure analysis",
-            passed,
+            isinstance(result, list),
         )
 
-        all_passed &= passed
+    except Exception as exc:
 
-        # ----------------------------------------------------------
-        # Exposure Concentration
-        # ----------------------------------------------------------
+        print(
+            f"{FAIL} Geographic exposure analysis"
+        )
 
-        concentration = (
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Exposure Concentration
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
             analytics_service
             .get_exposure_concentration()
         )
 
-        passed = validate_dict_response(
-            concentration
-        )
-
-        print_result(
+        all_passed &= check(
             "Exposure concentration analysis",
-            passed,
+            isinstance(result, dict)
+            and len(result) > 0,
         )
 
-        all_passed &= passed
+    except Exception as exc:
 
-        # ----------------------------------------------------------
-        # Segmentation Analysis
-        # ----------------------------------------------------------
+        print(
+            f"{FAIL} Exposure concentration analysis"
+        )
 
-        segmentation = (
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Segmentation Analytics
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
             analytics_service
             .get_segmentation_analysis()
         )
 
-        passed = validate_dict_response(
-            segmentation
-        )
-
-        print_result(
+        all_passed &= check(
             "Portfolio segmentation analysis",
-            passed,
+            isinstance(result, dict)
+            and len(result) > 0,
         )
 
-        all_passed &= passed
+    except Exception as exc:
 
-        # ----------------------------------------------------------
-        # Segment Distribution
-        # ----------------------------------------------------------
+        print(
+            f"{FAIL} Portfolio segmentation analysis"
+        )
 
-        segment_distribution = (
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Segment Distribution
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
             analytics_service
             .get_segment_distribution()
         )
 
-        passed = validate_list_response(
-            segment_distribution
-        )
-
-        print_result(
+        all_passed &= check(
             "Portfolio segment distribution",
-            passed,
+            isinstance(result, list),
         )
 
-        all_passed &= passed
+    except Exception as exc:
 
-        # ----------------------------------------------------------
-        # Analytical Snapshot
-        # ----------------------------------------------------------
+        print(
+            f"{FAIL} Portfolio segment distribution"
+        )
 
-        snapshot = (
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # ==============================================================
+    # NEW : Trend Analytics
+    # ==============================================================
+
+    try:
+
+        result = (
+            analytics_service
+            .get_trend_analysis()
+        )
+
+        all_passed &= check(
+            "Portfolio trend analysis",
+            isinstance(result, dict)
+            and len(result) > 0,
+        )
+
+    except Exception as exc:
+
+        print(
+            f"{FAIL} Portfolio trend analysis"
+        )
+
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Latest Trends
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
+            analytics_service
+            .get_latest_trends()
+        )
+
+        all_passed &= check(
+            "Latest portfolio trends",
+            isinstance(result, list),
+        )
+
+    except Exception as exc:
+
+        print(
+            f"{FAIL} Latest portfolio trends"
+        )
+
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Improving Trends
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
+            analytics_service
+            .get_improving_trends()
+        )
+
+        all_passed &= check(
+            "Improving portfolio trends",
+            isinstance(result, list),
+        )
+
+    except Exception as exc:
+
+        print(
+            f"{FAIL} Improving portfolio trends"
+        )
+
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Deteriorating Trends
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
+            analytics_service
+            .get_deteriorating_trends()
+        )
+
+        all_passed &= check(
+            "Deteriorating portfolio trends",
+            isinstance(result, list),
+        )
+
+    except Exception as exc:
+
+        print(
+            f"{FAIL} Deteriorating portfolio trends"
+        )
+
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # ==============================================================
+    # NEW : Opportunity Analytics
+    # ==============================================================
+
+    try:
+
+        result = (
+            analytics_service
+            .get_opportunity_analysis()
+        )
+
+        all_passed &= check(
+            "Portfolio opportunity analysis",
+            isinstance(result, dict)
+            and len(result) > 0,
+        )
+
+    except Exception as exc:
+
+        print(
+            f"{FAIL} Portfolio opportunity analysis"
+        )
+
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Opportunity Distribution
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
+            analytics_service
+            .get_opportunity_distribution()
+        )
+
+        all_passed &= check(
+            "Opportunity distribution",
+            isinstance(result, list),
+        )
+
+    except Exception as exc:
+
+        print(
+            f"{FAIL} Opportunity distribution"
+        )
+
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Customer Opportunity Distribution
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
+            analytics_service
+            .get_customer_opportunity_distribution()
+        )
+
+        all_passed &= check(
+            "Customer opportunity distribution",
+            isinstance(result, list),
+        )
+
+    except Exception as exc:
+
+        print(
+            f"{FAIL} Customer opportunity distribution"
+        )
+
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Opportunity Value Distribution
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
+            analytics_service
+            .get_opportunity_value_distribution()
+        )
+
+        all_passed &= check(
+            "Opportunity value distribution",
+            isinstance(result, list),
+        )
+
+    except Exception as exc:
+
+        print(
+            f"{FAIL} Opportunity value distribution"
+        )
+
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Opportunity Confidence Distribution
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
+            analytics_service
+            .get_opportunity_confidence_distribution()
+        )
+
+        all_passed &= check(
+            "Opportunity confidence distribution",
+            isinstance(result, list),
+        )
+
+    except Exception as exc:
+
+        print(
+            f"{FAIL} Opportunity confidence distribution"
+        )
+
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Highest Value Opportunity
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
+            analytics_service
+            .get_highest_value_opportunity()
+        )
+
+        all_passed &= check(
+            "Highest value opportunity",
+            isinstance(result, dict)
+            and len(result) > 0,
+        )
+
+    except Exception as exc:
+
+        print(
+            f"{FAIL} Highest value opportunity"
+        )
+
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # Highest Confidence Opportunity
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
+            analytics_service
+            .get_highest_confidence_opportunity()
+        )
+
+        all_passed &= check(
+            "Highest confidence opportunity",
+            isinstance(result, dict)
+            and len(result) > 0,
+        )
+
+    except Exception as exc:
+
+        print(
+            f"{FAIL} Highest confidence opportunity"
+        )
+
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # --------------------------------------------------------------
+    # High Confidence Opportunities
+    # --------------------------------------------------------------
+
+    try:
+
+        result = (
+            analytics_service
+            .get_high_confidence_opportunities()
+        )
+
+        all_passed &= check(
+            "High confidence opportunities",
+            isinstance(result, list),
+        )
+
+    except Exception as exc:
+
+        print(
+            f"{FAIL} High confidence opportunities"
+        )
+
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # ==============================================================
+    # Consolidated Portfolio Overview
+    # ==============================================================
+
+    try:
+
+        result = (
+            analytics_service
+            .get_portfolio_overview()
+        )
+
+        required_sections = {
+            "kpis",
+            "risk",
+            "exposure",
+            "segmentation",
+            "trends",
+            "opportunities",
+        }
+
+        all_passed &= check(
+            "Consolidated portfolio overview",
+            isinstance(result, dict)
+            and required_sections.issubset(
+                result.keys()
+            ),
+        )
+
+    except Exception as exc:
+
+        print(
+            f"{FAIL} Consolidated portfolio overview"
+        )
+
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # ==============================================================
+    # Executive Analytical Snapshot
+    # ==============================================================
+
+    try:
+
+        result = (
             analytics_service
             .get_analytical_snapshot()
         )
 
-        passed = validate_dict_response(
-            snapshot,
-            required_keys=[
-                "kpis",
-                "risk",
-                "exposure",
-            ],
-        )
+        required_sections = {
+            "kpis",
+            "risk",
+            "exposure",
+            "trends",
+            "opportunities",
+        }
 
-        print_result(
+        all_passed &= check(
             "Consolidated analytical snapshot",
-            passed,
+            isinstance(result, dict)
+            and required_sections.issubset(
+                result.keys()
+            ),
         )
-
-        all_passed &= passed
 
     except Exception as exc:
 
-        all_passed = False
-
-        print()
-
         print(
-            f"Smoke test execution failed: {exc}"
+            f"{FAIL} Consolidated analytical snapshot"
         )
 
-    # --------------------------------------------------------------
+        print(
+            f"      Error: {exc}"
+        )
+
+        all_passed = False
+
+    # ==============================================================
     # Final Result
-    # --------------------------------------------------------------
+    # ==============================================================
 
     print()
-
     print("=" * 70)
 
     if all_passed:
@@ -405,6 +837,6 @@ if __name__ == "__main__":
 
     success = run_smoke_test()
 
-    sys.exit(
-        0 if success else 1
-    )
+    if not success:
+
+        sys.exit(1)
