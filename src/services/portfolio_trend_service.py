@@ -20,7 +20,7 @@ does not access operational customer data directly.
 
 from typing import Any, Dict, List, Optional
 
-from src.database.portfolio_repository import (
+from src.repository.portfolio_repository import (
     PortfolioRepository,
 )
 
