@@ -21,7 +21,7 @@ introduced later without changing the repository boundary.
 
 from typing import Any, Dict, List, Optional
 
-from src.database.portfolio_repository import PortfolioRepository
+from src.repository.portfolio_repository import PortfolioRepository
 
 
 class PortfolioRiskService:

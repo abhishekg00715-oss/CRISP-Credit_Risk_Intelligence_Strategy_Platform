@@ -20,7 +20,7 @@ analysis from being introduced.
 
 from typing import Any, Dict, Optional
 
-from src.database.portfolio_repository import PortfolioRepository
+from src.repository.portfolio_repository import PortfolioRepository
 
 
 class PortfolioKPIService:
