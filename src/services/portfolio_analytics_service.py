@@ -7,7 +7,8 @@ Responsibilities
 ----------------
 - Orchestrate portfolio analytical services.
 - Provide a single entry point for portfolio analytics.
-- Combine KPI, segmentation, risk and exposure analytics.
+- Combine KPI, segmentation, risk, exposure, trend and
+  opportunity analytics.
 - Support reusable analytical operations for downstream agents
   and presentation services.
 
@@ -39,6 +40,14 @@ from src.services.portfolio_exposure_service import (
     PortfolioExposureService,
 )
 
+from src.services.portfolio_trend_service import (
+    PortfolioTrendService,
+)
+
+from src.services.portfolio_opportunity_service import (
+    PortfolioOpportunityService,
+)
+
 
 class PortfolioAnalyticsService:
     """
@@ -54,6 +63,10 @@ class PortfolioAnalyticsService:
         segment_service: Optional[PortfolioSegmentService] = None,
         risk_service: Optional[PortfolioRiskService] = None,
         exposure_service: Optional[PortfolioExposureService] = None,
+        trend_service: Optional[PortfolioTrendService] = None,
+        opportunity_service: Optional[
+            PortfolioOpportunityService
+        ] = None,
     ) -> None:
 
         self.kpi_service = (
@@ -80,6 +93,18 @@ class PortfolioAnalyticsService:
             else PortfolioExposureService()
         )
 
+        self.trend_service = (
+            trend_service
+            if trend_service is not None
+            else PortfolioTrendService()
+        )
+
+        self.opportunity_service = (
+            opportunity_service
+            if opportunity_service is not None
+            else PortfolioOpportunityService()
+        )
+
     # --------------------------------------------------------------
     # Portfolio Overview
     # --------------------------------------------------------------
@@ -88,16 +113,28 @@ class PortfolioAnalyticsService:
         """
         Return the consolidated portfolio overview.
 
-        Combines the primary KPI, risk, exposure and segmentation
-        views into a single analytical response.
+        Combines the primary KPI, risk, exposure, segmentation,
+        trend and opportunity views into a single analytical
+        response.
         """
 
         return {
             "kpis": self.kpi_service.get_portfolio_kpis(),
+
             "risk": self.risk_service.analyze_risk_distribution(),
+
             "exposure": self.exposure_service.analyze_exposure(),
+
             "segmentation": (
                 self.segment_service.analyze_segments()
+            ),
+
+            "trends": (
+                self.trend_service.analyze_trends()
+            ),
+
+            "opportunities": (
+                self.opportunity_service.analyze_opportunities()
             ),
         }
 
@@ -190,6 +227,138 @@ class PortfolioAnalyticsService:
         return self.segment_service.get_segment_distribution()
 
     # --------------------------------------------------------------
+    # Trend Analytics
+    # --------------------------------------------------------------
+
+    def get_trend_analysis(self) -> Dict[str, Any]:
+        """
+        Return consolidated portfolio trend analytics.
+        """
+
+        return self.trend_service.analyze_trends()
+
+    def get_latest_trends(self) -> list[dict]:
+        """
+        Return the latest available value for each portfolio
+        trend metric.
+        """
+
+        return self.trend_service.get_latest_trends()
+
+    def get_improving_trends(self) -> list[dict]:
+        """
+        Return portfolio metrics showing an increasing movement.
+        """
+
+        return self.trend_service.get_improving_trends()
+
+    def get_deteriorating_trends(self) -> list[dict]:
+        """
+        Return portfolio metrics showing a decreasing movement.
+        """
+
+        return self.trend_service.get_deteriorating_trends()
+
+    # --------------------------------------------------------------
+    # Opportunity Analytics
+    # --------------------------------------------------------------
+
+    def get_opportunity_analysis(self) -> Dict[str, Any]:
+        """
+        Return consolidated portfolio opportunity analytics.
+        """
+
+        return self.opportunity_service.analyze_opportunities()
+
+    def get_opportunity_distribution(
+        self,
+    ) -> list[dict]:
+        """
+        Return opportunity distribution by opportunity type.
+        """
+
+        return (
+            self.opportunity_service
+            .get_opportunity_distribution()
+        )
+
+    def get_customer_opportunity_distribution(
+        self,
+    ) -> list[dict]:
+        """
+        Return opportunities ranked by eligible customer count.
+        """
+
+        return (
+            self.opportunity_service
+            .get_customer_opportunity_distribution()
+        )
+
+    def get_opportunity_value_distribution(
+        self,
+    ) -> list[dict]:
+        """
+        Return opportunities ranked by estimated value.
+        """
+
+        return (
+            self.opportunity_service
+            .get_value_distribution()
+        )
+
+    def get_opportunity_confidence_distribution(
+        self,
+    ) -> list[dict]:
+        """
+        Return opportunities ranked by confidence score.
+        """
+
+        return (
+            self.opportunity_service
+            .get_confidence_distribution()
+        )
+
+    def get_highest_value_opportunity(
+        self,
+    ) -> Dict[str, Any]:
+        """
+        Return the highest-value portfolio opportunity.
+        """
+
+        return (
+            self.opportunity_service
+            .get_highest_value_opportunity()
+        )
+
+    def get_highest_confidence_opportunity(
+        self,
+    ) -> Dict[str, Any]:
+        """
+        Return the highest-confidence portfolio opportunity.
+        """
+
+        return (
+            self.opportunity_service
+            .get_highest_confidence_opportunity()
+        )
+
+    def get_high_confidence_opportunities(
+        self,
+        threshold: float = 0.70,
+    ) -> list[dict]:
+        """
+        Return opportunities meeting the supplied confidence
+        threshold.
+        """
+
+        return (
+            self.opportunity_service
+            .get_high_confidence_opportunities(
+                threshold=threshold
+            )
+        )
+
+    # --------------------------------------------------------------
     # Executive Analytical Snapshot
     # --------------------------------------------------------------
 
@@ -216,6 +385,14 @@ class PortfolioAnalyticsService:
             self.exposure_service.get_exposure_concentration()
         )
 
+        trend_analysis = (
+            self.trend_service.analyze_trends()
+        )
+
+        opportunity_analysis = (
+            self.opportunity_service.analyze_opportunities()
+        )
+
         return {
             "kpis": kpis,
 
@@ -226,5 +403,13 @@ class PortfolioAnalyticsService:
             "exposure": {
                 "highest_exposure_category": highest_exposure,
                 "concentration": concentration,
+            },
+
+            "trends": {
+                "analysis": trend_analysis,
+            },
+
+            "opportunities": {
+                "analysis": opportunity_analysis,
             },
         }
