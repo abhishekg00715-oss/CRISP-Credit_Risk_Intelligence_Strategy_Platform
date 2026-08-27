@@ -2,33 +2,37 @@
 portfolio_agent.py
 
 Portfolio Intelligence Agent responsible for orchestrating
-portfolio analytics and constructing the standardized
-Portfolio Agent response.
+portfolio analytics and portfolio reasoning.
 
 Responsibilities
 ----------------
 - Accept portfolio-related user requests.
-- Retrieve the complete analytical portfolio context.
-- Construct a standardized PortfolioAgentResponse.
-- Provide a clean integration boundary for future LLM-based
-  reasoning and narrative generation.
+- Retrieve the complete portfolio analytical context.
+- Delegate interpretation to PortfolioReasoningService.
+- Return the standardized PortfolioAgentResponse.
 
 The agent does NOT:
 - Access the Portfolio Repository directly.
 - Perform business calculations.
 - Select individual portfolio analytics services.
 - Implement portfolio business rules.
-- Perform natural-language interpretation itself.
+- Implement LLM-specific reasoning.
 
-Portfolio analytics are provided by PortfolioAnalyticsService.
-Future LLM reasoning will consume the analytical context and
-populate the interpretive sections of PortfolioAgentResponse.
+PortfolioAnalyticsService owns analytical orchestration.
+
+PortfolioReasoningService owns the reasoning boundary and can
+later be backed by an LLM without changing the PortfolioAgent
+contract.
 """
 
 from typing import Any, Dict, Optional
 
 from src.services.portfolio_analytics_service import (
     PortfolioAnalyticsService,
+)
+
+from src.services.portfolio_reasoning_service import (
+    PortfolioReasoningService,
 )
 
 from src.models.portfolio_agent_response import (
@@ -40,9 +44,8 @@ class PortfolioAgent:
     """
     Portfolio Intelligence Agent.
 
-    Acts as the orchestration boundary between the Coordinator,
-    PortfolioAnalyticsService and the future reasoning /
-    narrative generation layer.
+    Acts as the orchestration boundary between the request,
+    portfolio analytics and portfolio reasoning layers.
     """
 
     def __init__(
@@ -50,12 +53,21 @@ class PortfolioAgent:
         analytics_service: Optional[
             PortfolioAnalyticsService
         ] = None,
+        reasoning_service: Optional[
+            PortfolioReasoningService
+        ] = None,
     ) -> None:
 
         self.analytics_service = (
             analytics_service
             if analytics_service is not None
             else PortfolioAnalyticsService()
+        )
+
+        self.reasoning_service = (
+            reasoning_service
+            if reasoning_service is not None
+            else PortfolioReasoningService()
         )
 
     # ==============================================================
@@ -69,11 +81,8 @@ class PortfolioAgent:
         """
         Process a portfolio-related user request.
 
-        The complete portfolio analytical context is retrieved
-        through PortfolioAnalyticsService.
-
-        The agent deliberately does not select individual
-        analytical capabilities based on the user query.
+        The agent retrieves the complete analytical context and
+        delegates reasoning to PortfolioReasoningService.
 
         Parameters
         ----------
@@ -99,7 +108,7 @@ class PortfolioAgent:
                 self.get_analytical_context()
             )
 
-            return self._build_response(
+            return self.reasoning_service.reason(
                 query=query,
                 analytical_context=analytical_context,
             )
@@ -108,8 +117,8 @@ class PortfolioAgent:
 
             return PortfolioAgentResponse.error_response(
                 message=(
-                    "Unable to retrieve portfolio "
-                    f"analytics: {str(exc)}"
+                    "Unable to process portfolio request: "
+                    f"{str(exc)}"
                 ),
                 query=query,
             )
@@ -124,9 +133,9 @@ class PortfolioAgent:
         """
         Retrieve the complete portfolio analytical context.
 
-        PortfolioAgent uses the consolidated analytics interface
-        rather than directly invoking individual analytical
-        services.
+        PortfolioAgent deliberately consumes the consolidated
+        analytics interface rather than invoking individual
+        portfolio analytics services.
 
         Returns
         -------
@@ -139,70 +148,31 @@ class PortfolioAgent:
             .get_full_analytical_context()
         )
 
-    # ==============================================================
-    # Response Construction
-    # ==============================================================
 
-    def _build_response(
-        self,
-        query: str,
-        analytical_context: Dict[str, Any],
-    ) -> PortfolioAgentResponse:
-        """
-        Construct the PortfolioAgentResponse.
+# ==============================================================
+# Local Testing
+# ==============================================================
 
-        At the current implementation stage, the complete
-        analytical context is exposed as facts.
+if __name__ == "__main__":
 
-        Future LLM integration will interpret these facts and
-        populate observations, risks, trends, opportunities
-        and evidence without changing the agent contract.
-        """
+    agent = PortfolioAgent()
 
-        facts = self._extract_facts(
-            analytical_context
-        )
+    response = agent.process(
+        "Provide an overview of the portfolio."
+    )
 
-        return PortfolioAgentResponse.success_response(
-            query=query,
-            facts=facts,
-            message=(
-                "Portfolio analytics retrieved "
-                "successfully."
-            ),
-        )
+    print()
 
-    # ==============================================================
-    # Fact Preparation
-    # ==============================================================
+    print("=" * 70)
 
-    @staticmethod
-    def _extract_facts(
-        analytical_context: Dict[str, Any],
-    ) -> list[dict]:
-        """
-        Convert the consolidated analytical context into the
-        fact collection expected by PortfolioAgentResponse.
+    print(
+        "PORTFOLIO AGENT"
+    )
 
-        The method does not perform business calculations or
-        interpretation. It only preserves the analytical
-        information returned by PortfolioAnalyticsService.
+    print("=" * 70)
 
-        Each analytical domain is represented as a separate
-        fact entry to maintain domain traceability.
-        """
+    print(
+        response.to_dict()
+    )
 
-        facts = []
-
-        for domain, analytical_data in (
-            analytical_context.items()
-        ):
-
-            facts.append(
-                {
-                    "domain": domain,
-                    "data": analytical_data,
-                }
-            )
-
-        return facts
+    print("=" * 70)
