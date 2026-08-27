@@ -6,20 +6,20 @@ Provides a unified analytical interface for Portfolio Intelligence.
 Responsibilities
 ----------------
 - Orchestrate portfolio analytical services.
-- Provide a single entry point for portfolio analytics.
+- Provide reusable analytical operations.
+- Provide a consolidated analytical context for Portfolio Agent.
 - Combine KPI, segmentation, risk, exposure, trend and
   opportunity analytics.
-- Support reusable analytical operations for downstream agents
-  and presentation services.
 
-This service is intentionally an orchestration/facade layer.
-
-Business calculations remain within the specialised analytics
-services. Database access remains encapsulated by
-PortfolioRepository.
-
-The Portfolio Agent should consume this service rather than
-directly accessing the repository.
+Design Principles
+-----------------
+- This service is an orchestration / facade layer.
+- Business calculations remain within specialised analytics services.
+- Database access remains encapsulated by PortfolioRepository.
+- Portfolio Agent consumes this service rather than accessing
+  repositories or specialised services directly.
+- The Portfolio Agent can request the complete analytical context
+  without performing portfolio capability selection itself.
 """
 
 from typing import Any, Dict, Optional
@@ -51,10 +51,13 @@ from src.services.portfolio_opportunity_service import (
 
 class PortfolioAnalyticsService:
     """
-    Unified service for Portfolio Analytics.
+    Unified facade for Portfolio Analytics.
 
-    Acts as a facade over the specialised portfolio analytics
-    services.
+    Coordinates specialised portfolio analytics services and
+    exposes reusable analytical operations to downstream
+    consumers such as PortfolioAgent and presentation services.
+
+    The service does not contain business calculations.
     """
 
     def __init__(
@@ -105,42 +108,83 @@ class PortfolioAnalyticsService:
             else PortfolioOpportunityService()
         )
 
-    # --------------------------------------------------------------
+    # ==============================================================
+    # Consolidated Analytical Context
+    # ==============================================================
+
+    def get_full_analytical_context(self) -> Dict[str, Any]:
+        """
+        Return the complete portfolio analytical context.
+
+        This is the primary analytical interface for PortfolioAgent.
+
+        All specialised analytical domains are retrieved through
+        their respective services and returned as structured facts.
+
+        No analytical interpretation or natural-language generation
+        is performed here.
+
+        Returns
+        -------
+        Dict[str, Any]
+            Complete structured portfolio analytical context.
+        """
+
+        return {
+            "kpis": self.get_kpis(),
+
+            "risk": self.get_risk_analysis(),
+
+            "exposure": self.get_exposure_analysis(),
+
+            "segmentation": (
+                self.get_segmentation_analysis()
+            ),
+
+            "trends": (
+                self.get_trend_analysis()
+            ),
+
+            "opportunities": (
+                self.get_opportunity_analysis()
+            ),
+        }
+
+    # ==============================================================
     # Portfolio Overview
-    # --------------------------------------------------------------
+    # ==============================================================
 
     def get_portfolio_overview(self) -> Dict[str, Any]:
         """
         Return the consolidated portfolio overview.
 
-        Combines the primary KPI, risk, exposure, segmentation,
-        trend and opportunity views into a single analytical
-        response.
+        This provides a high-level portfolio view combining the
+        primary analytical domains.
         """
 
         return {
-            "kpis": self.kpi_service.get_portfolio_kpis(),
+            "kpis": self.get_kpis(),
 
-            "risk": self.risk_service.analyze_risk_distribution(),
+            "risk": self.get_risk_analysis(),
 
-            "exposure": self.exposure_service.analyze_exposure(),
+            "exposure": self.get_exposure_analysis(),
 
             "segmentation": (
-                self.segment_service.analyze_segments()
+                self.get_segmentation_analysis()
             ),
 
             "trends": (
-                self.trend_service.analyze_trends()
+                self.get_trend_analysis()
             ),
 
             "opportunities": (
-                self.opportunity_service.analyze_opportunities()
+                self.get_opportunity_analysis()
             ),
         }
 
-    # --------------------------------------------------------------
-    # Portfolio KPIs
-    # --------------------------------------------------------------
+    # ==============================================================
+    # Portfolio KPI Analytics
+    # ==============================================================
 
     def get_kpis(self) -> Dict[str, Any]:
         """
@@ -149,13 +193,13 @@ class PortfolioAnalyticsService:
 
         return self.kpi_service.get_portfolio_kpis()
 
-    # --------------------------------------------------------------
+    # ==============================================================
     # Risk Analytics
-    # --------------------------------------------------------------
+    # ==============================================================
 
     def get_risk_analysis(self) -> Dict[str, Any]:
         """
-        Return portfolio risk distribution analytics.
+        Return consolidated portfolio risk analytics.
         """
 
         return self.risk_service.analyze_risk_distribution()
@@ -167,18 +211,17 @@ class PortfolioAnalyticsService:
 
         return self.risk_service.get_customer_distribution()
 
-    def get_risk_exposure_distribution(
-        self,
-    ) -> list[dict]:
+    def get_risk_exposure_distribution(self) -> list[dict]:
         """
         Return portfolio exposure distributed across risk bands.
         """
 
         return self.risk_service.get_exposure_distribution()
 
-    # --------------------------------------------------------------
+    # ==============================================================
     # Exposure Analytics
-    # --------------------------------------------------------------
+    # ==============================================================
+
 
     def get_exposure_analysis(self) -> Dict[str, Any]:
         """
@@ -208,9 +251,9 @@ class PortfolioAnalyticsService:
 
         return self.exposure_service.get_exposure_concentration()
 
-    # --------------------------------------------------------------
+    # ==============================================================
     # Segmentation Analytics
-    # --------------------------------------------------------------
+    # ==============================================================
 
     def get_segmentation_analysis(self) -> Dict[str, Any]:
         """
@@ -226,9 +269,9 @@ class PortfolioAnalyticsService:
 
         return self.segment_service.get_segment_distribution()
 
-    # --------------------------------------------------------------
+    # ==============================================================
     # Trend Analytics
-    # --------------------------------------------------------------
+    # ==============================================================
 
     def get_trend_analysis(self) -> Dict[str, Any]:
         """
@@ -259,20 +302,21 @@ class PortfolioAnalyticsService:
 
         return self.trend_service.get_deteriorating_trends()
 
-    # --------------------------------------------------------------
+    # ==============================================================
     # Opportunity Analytics
-    # --------------------------------------------------------------
+    # ==============================================================
 
     def get_opportunity_analysis(self) -> Dict[str, Any]:
         """
         Return consolidated portfolio opportunity analytics.
         """
 
-        return self.opportunity_service.analyze_opportunities()
+        return (
+            self.opportunity_service
+            .analyze_opportunities()
+        )
 
-    def get_opportunity_distribution(
-        self,
-    ) -> list[dict]:
+    def get_opportunity_distribution(self) -> list[dict]:
         """
         Return opportunity distribution by opportunity type.
         """
@@ -294,9 +338,7 @@ class PortfolioAnalyticsService:
             .get_customer_opportunity_distribution()
         )
 
-    def get_opportunity_value_distribution(
-        self,
-    ) -> list[dict]:
+    def get_opportunity_value_distribution(self) -> list[dict]:
         """
         Return opportunities ranked by estimated value.
         """
@@ -358,58 +400,52 @@ class PortfolioAnalyticsService:
             )
         )
 
-    # --------------------------------------------------------------
+    # ==============================================================
     # Executive Analytical Snapshot
-    # --------------------------------------------------------------
+    # ==============================================================
 
     def get_analytical_snapshot(self) -> Dict[str, Any]:
         """
-        Return a compact analytical snapshot suitable for
-        downstream summary or narrative generation.
+        Return a compact analytical snapshot.
 
-        This method intentionally returns structured analytical
-        facts rather than natural-language interpretation.
+        Intended for lightweight executive summaries or
+        presentation-oriented consumers.
+
+        This should not be confused with
+        get_full_analytical_context(), which is the complete
+        analytical evidence set intended for PortfolioAgent.
         """
 
-        kpis = self.get_kpis()
-
-        dominant_risk = (
-            self.risk_service.get_dominant_risk_band()
-        )
-
-        highest_exposure = (
-            self.exposure_service.get_highest_exposure_category()
-        )
-
-        concentration = (
-            self.exposure_service.get_exposure_concentration()
-        )
-
-        trend_analysis = (
-            self.trend_service.analyze_trends()
-        )
-
-        opportunity_analysis = (
-            self.opportunity_service.analyze_opportunities()
-        )
-
         return {
-            "kpis": kpis,
+            "kpis": self.get_kpis(),
 
             "risk": {
-                "dominant_risk_band": dominant_risk,
+                "dominant_risk_band": (
+                    self.risk_service
+                    .get_dominant_risk_band()
+                ),
             },
 
             "exposure": {
-                "highest_exposure_category": highest_exposure,
-                "concentration": concentration,
+                "highest_exposure_category": (
+                    self.exposure_service
+                    .get_highest_exposure_category()
+                ),
+
+                "concentration": (
+                    self.get_exposure_concentration()
+                ),
             },
 
             "trends": {
-                "analysis": trend_analysis,
+                "analysis": (
+                    self.get_trend_analysis()
+                ),
             },
 
             "opportunities": {
-                "analysis": opportunity_analysis,
+                "analysis": (
+                    self.get_opportunity_analysis()
+                ),
             },
         }
