@@ -2,24 +2,27 @@
 portfolio_agent.py
 
 Portfolio Intelligence Agent responsible for orchestrating
-portfolio analytics and constructing portfolio insights.
+portfolio analytics and constructing the standardized
+Portfolio Agent response.
 
 Responsibilities
 ----------------
 - Accept portfolio-related user requests.
 - Retrieve the complete analytical portfolio context.
-- Provide the analytical context to the reasoning/narrative layer.
-- Construct a standardized portfolio response.
+- Construct a standardized PortfolioAgentResponse.
+- Provide a clean integration boundary for future LLM-based
+  reasoning and narrative generation.
 
 The agent does NOT:
 - Access the Portfolio Repository directly.
 - Perform business calculations.
-- Select individual analytics services.
+- Select individual portfolio analytics services.
 - Implement portfolio business rules.
+- Perform natural-language interpretation itself.
 
 Portfolio analytics are provided by PortfolioAnalyticsService.
-The LLM, when enabled, is responsible for interpreting the
-analytical evidence and generating narrative insights.
+Future LLM reasoning will consume the analytical context and
+populate the interpretive sections of PortfolioAgentResponse.
 """
 
 from typing import Any, Dict, Optional
@@ -28,13 +31,17 @@ from src.services.portfolio_analytics_service import (
     PortfolioAnalyticsService,
 )
 
+from src.models.portfolio_agent_response import (
+    PortfolioAgentResponse,
+)
+
 
 class PortfolioAgent:
     """
     Portfolio Intelligence Agent.
 
     Acts as the orchestration boundary between the Coordinator,
-    PortfolioAnalyticsService and the downstream reasoning /
+    PortfolioAnalyticsService and the future reasoning /
     narrative generation layer.
     """
 
@@ -58,40 +65,54 @@ class PortfolioAgent:
     def process(
         self,
         query: str,
-    ) -> Dict[str, Any]:
+    ) -> PortfolioAgentResponse:
         """
         Process a portfolio-related user request.
 
         The complete portfolio analytical context is retrieved
-        before reasoning. The agent does not selectively invoke
-        individual analytical services based on the query.
+        through PortfolioAnalyticsService.
+
+        The agent deliberately does not select individual
+        analytical capabilities based on the user query.
 
         Parameters
         ----------
         query:
-            User's portfolio-related question.
+            Portfolio-related user request.
 
         Returns
         -------
-        Dict[str, Any]
-            Structured portfolio response.
+        PortfolioAgentResponse
+            Standardized portfolio agent response.
         """
 
         if not query or not query.strip():
 
-            return self._build_error_response(
-                "Portfolio query cannot be empty."
+            return PortfolioAgentResponse.error_response(
+                message="Portfolio query cannot be empty.",
+                query=query,
             )
 
-        analytical_context = (
-            self.analytics_service
-            .get_full_analytical_context()
-        )
+        try:
 
-        return self._build_response(
-            query=query,
-            analytical_context=analytical_context,
-        )
+            analytical_context = (
+                self.get_analytical_context()
+            )
+
+            return self._build_response(
+                query=query,
+                analytical_context=analytical_context,
+            )
+
+        except Exception as exc:
+
+            return PortfolioAgentResponse.error_response(
+                message=(
+                    "Unable to retrieve portfolio "
+                    f"analytics: {str(exc)}"
+                ),
+                query=query,
+            )
 
     # ==============================================================
     # Analytical Context
@@ -103,10 +124,14 @@ class PortfolioAgent:
         """
         Retrieve the complete portfolio analytical context.
 
-        This method provides a clean boundary between the agent
-        and PortfolioAnalyticsService.
+        PortfolioAgent uses the consolidated analytics interface
+        rather than directly invoking individual analytical
+        services.
 
-        No interpretation or narrative generation is performed.
+        Returns
+        -------
+        Dict[str, Any]
+            Complete structured portfolio analytical context.
         """
 
         return (
@@ -122,45 +147,62 @@ class PortfolioAgent:
         self,
         query: str,
         analytical_context: Dict[str, Any],
-    ) -> Dict[str, Any]:
+    ) -> PortfolioAgentResponse:
         """
-        Construct the standardized Portfolio Agent response.
+        Construct the PortfolioAgentResponse.
 
-        At this stage the response contains structured analytical
-        evidence. LLM-based narrative generation can be introduced
-        without changing the analytics or repository layers.
+        At the current implementation stage, the complete
+        analytical context is exposed as facts.
+
+        Future LLM integration will interpret these facts and
+        populate observations, risks, trends, opportunities
+        and evidence without changing the agent contract.
         """
 
-        return {
-            "success": True,
+        facts = self._extract_facts(
+            analytical_context
+        )
 
-            "message": (
-                "Portfolio analytics retrieved successfully."
+        return PortfolioAgentResponse.success_response(
+            query=query,
+            facts=facts,
+            message=(
+                "Portfolio analytics retrieved "
+                "successfully."
             ),
-
-            "query": query,
-
-            "analytical_context": analytical_context,
-        }
+        )
 
     # ==============================================================
-    # Error Response
+    # Fact Preparation
     # ==============================================================
 
     @staticmethod
-    def _build_error_response(
-        message: str,
-    ) -> Dict[str, Any]:
+    def _extract_facts(
+        analytical_context: Dict[str, Any],
+    ) -> list[dict]:
         """
-        Construct a standardized error response.
+        Convert the consolidated analytical context into the
+        fact collection expected by PortfolioAgentResponse.
+
+        The method does not perform business calculations or
+        interpretation. It only preserves the analytical
+        information returned by PortfolioAnalyticsService.
+
+        Each analytical domain is represented as a separate
+        fact entry to maintain domain traceability.
         """
 
-        return {
-            "success": False,
+        facts = []
 
-            "message": message,
+        for domain, analytical_data in (
+            analytical_context.items()
+        ):
 
-            "query": None,
+            facts.append(
+                {
+                    "domain": domain,
+                    "data": analytical_data,
+                }
+            )
 
-            "analytical_context": {},
-        }
+        return facts
