@@ -1,31 +1,36 @@
 """
 portfolio_agent.py
 
-Portfolio Intelligence Agent responsible for orchestrating
-portfolio analytics and portfolio reasoning.
+Portfolio Agent responsible for orchestrating Portfolio Intelligence.
 
 Responsibilities
 ----------------
 - Accept portfolio-related user requests.
 - Retrieve the complete portfolio analytical context.
-- Delegate interpretation to PortfolioReasoningService.
-- Return the standardized PortfolioAgentResponse.
+- Delegate reasoning to PortfolioReasoningService.
+- Return a structured PortfolioAgentResponse.
 
-The agent does NOT:
-- Access the Portfolio Repository directly.
-- Perform business calculations.
-- Select individual portfolio analytics services.
-- Implement portfolio business rules.
-- Implement LLM-specific reasoning.
+The Portfolio Agent intentionally does NOT:
+- perform portfolio calculations,
+- directly access the Portfolio Repository,
+- select individual analytical services,
+- construct LLM prompts,
+- invoke the LLM directly.
 
-PortfolioAnalyticsService owns analytical orchestration.
+Analytical calculations remain within the specialised portfolio
+analytics services.
 
-PortfolioReasoningService owns the reasoning boundary and can
-later be backed by an LLM without changing the PortfolioAgent
-contract.
+LLM reasoning remains encapsulated within PortfolioReasoningService.
+
+The Agent therefore acts as a thin orchestration layer between
+the portfolio analytics and reasoning capabilities.
 """
 
-from typing import Any, Dict, Optional
+from typing import Optional
+
+from src.models.portfolio_agent_response import (
+    PortfolioAgentResponse,
+)
 
 from src.services.portfolio_analytics_service import (
     PortfolioAnalyticsService,
@@ -35,17 +40,14 @@ from src.services.portfolio_reasoning_service import (
     PortfolioReasoningService,
 )
 
-from src.models.portfolio_agent_response import (
-    PortfolioAgentResponse,
-)
-
 
 class PortfolioAgent:
     """
-    Portfolio Intelligence Agent.
+    Agent responsible for Portfolio Intelligence requests.
 
-    Acts as the orchestration boundary between the request,
-    portfolio analytics and portfolio reasoning layers.
+    The agent retrieves the complete analytical portfolio context
+    and delegates interpretation and reasoning to the
+    PortfolioReasoningService.
     """
 
     def __init__(
@@ -70,109 +72,70 @@ class PortfolioAgent:
             else PortfolioReasoningService()
         )
 
-    # ==============================================================
-    # Main Agent Entry Point
-    # ==============================================================
+    # --------------------------------------------------------------
+    # Portfolio Request Processing
+    # --------------------------------------------------------------
 
     def process(
         self,
         query: str,
     ) -> PortfolioAgentResponse:
         """
-        Process a portfolio-related user request.
+        Process a portfolio intelligence request.
 
-        The agent retrieves the complete analytical context and
-        delegates reasoning to PortfolioReasoningService.
+        Workflow
+        --------
+        1. Retrieve the complete analytical portfolio context.
+        2. Pass the context and user query to the reasoning service.
+        3. Return the structured PortfolioAgentResponse.
 
-        Parameters
-        ----------
-        query:
-            Portfolio-related user request.
+        The complete analytical context is intentionally provided
+        to the reasoning service rather than selectively invoking
+        individual portfolio analytics services.
 
-        Returns
-        -------
-        PortfolioAgentResponse
-            Standardized portfolio agent response.
+        This allows the reasoning layer to determine which
+        information is relevant to the user's request.
         """
 
         if not query or not query.strip():
 
-            return PortfolioAgentResponse.error_response(
-                message="Portfolio query cannot be empty.",
+            return PortfolioAgentResponse(
+                success=False,
                 query=query,
+                message=(
+                    "Portfolio query cannot be empty."
+                ),
             )
 
         try:
 
+            # ------------------------------------------------------
+            # Step 1: Retrieve complete analytical context
+            # ------------------------------------------------------
+
             analytical_context = (
-                self.get_analytical_context()
+                self.analytics_service
+                .get_full_analytical_context()
             )
 
-            return self.reasoning_service.reason(
-                query=query,
-                analytical_context=analytical_context,
+            # ------------------------------------------------------
+            # Step 2: Delegate reasoning
+            # ------------------------------------------------------
+
+            return (
+                self.reasoning_service
+                .reason(
+                    query=query,
+                    analytical_context=analytical_context,
+                )
             )
 
         except Exception as exc:
 
-            return PortfolioAgentResponse.error_response(
-                message=(
-                    "Unable to process portfolio request: "
-                    f"{str(exc)}"
-                ),
+            return PortfolioAgentResponse(
+                success=False,
                 query=query,
+                message=(
+                    f"Portfolio agent processing failed: {exc}"
+                ),
             )
-
-    # ==============================================================
-    # Analytical Context
-    # ==============================================================
-
-    def get_analytical_context(
-        self,
-    ) -> Dict[str, Any]:
-        """
-        Retrieve the complete portfolio analytical context.
-
-        PortfolioAgent deliberately consumes the consolidated
-        analytics interface rather than invoking individual
-        portfolio analytics services.
-
-        Returns
-        -------
-        Dict[str, Any]
-            Complete structured portfolio analytical context.
-        """
-
-        return (
-            self.analytics_service
-            .get_full_analytical_context()
-        )
-
-
-# ==============================================================
-# Local Testing
-# ==============================================================
-
-if __name__ == "__main__":
-
-    agent = PortfolioAgent()
-
-    response = agent.process(
-        "Provide an overview of the portfolio."
-    )
-
-    print()
-
-    print("=" * 70)
-
-    print(
-        "PORTFOLIO AGENT"
-    )
-
-    print("=" * 70)
-
-    print(
-        response.to_dict()
-    )
-
-    print("=" * 70)
