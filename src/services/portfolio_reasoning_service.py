@@ -23,8 +23,8 @@ from src.models.portfolio_agent_response import (
     PortfolioAgentResponse,
 )
 
-from src.services.llm_provider import (
-    LLMProvider,
+from src.services.llm_service import (
+    LLMService,
 )
 
 from src.services.portfolio_reasoning_prompt import (
@@ -39,13 +39,17 @@ class PortfolioReasoningService:
 
     def __init__(
         self,
-        llm_provider: Optional[LLMProvider] = None,
+        llm_service: Optional[LLMService] = None,
         prompt_builder: Optional[
             PortfolioReasoningPromptBuilder
         ] = None,
     ) -> None:
-
-        self.llm_provider = llm_provider
+    
+        self.llm_service = (
+            llm_service
+            if llm_service is not None
+            else LLMService()
+        )
 
         self.prompt_builder = (
             prompt_builder
@@ -118,7 +122,7 @@ class PortfolioReasoningService:
             )
 
             llm_response = (
-                self.llm_provider.generate(
+                self.llm_service.generate(
                     prompt
                 )
             )
