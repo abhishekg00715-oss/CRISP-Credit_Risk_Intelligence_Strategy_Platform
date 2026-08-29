@@ -253,10 +253,24 @@ def test_portfolio_reasoning_llm_response():
         analytical_context=analytical_context,
     )
 
+    print("\nSUCCESS:", response.success)
+    print("\nRESPONSE:")
+    print(response)
+
+    print("\nATTRIBUTES:")
+    print(vars(response))
+
     assert isinstance(
         response,
         PortfolioAgentResponse
     )
+
+    print("\nSUCCESS:", response.success)
+    print("\nRESPONSE:")
+    print(response)
+
+    print("\nATTRIBUTES:")
+    print(vars(response))
 
     assert response.success is True
 

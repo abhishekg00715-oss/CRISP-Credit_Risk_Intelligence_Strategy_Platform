@@ -7,7 +7,7 @@ Responsibilities
 ----------------
 - Accept the user query and complete analytical context.
 - Build the reasoning prompt.
-- Invoke the configured LLM provider.
+- Invoke the configured LLM service.
 - Return structured portfolio reasoning.
 
 The service does NOT:
@@ -101,7 +101,7 @@ class PortfolioReasoningService:
             # LLM Reasoning
             # ------------------------------------------------------
 
-            if self.llm_provider is None:
+            if self.llm_service is None:
 
                 return PortfolioAgentResponse(
                     success=True,
@@ -110,7 +110,7 @@ class PortfolioReasoningService:
                     evidence=evidence,
                     message=(
                         "Analytical context prepared. "
-                        "LLM reasoning provider is not configured."
+                        "LLM service is not configured."
                     ),
                 )
 
@@ -122,7 +122,7 @@ class PortfolioReasoningService:
             )
 
             llm_response = (
-                self.llm_service.generate(
+                self.llm_service.generate_response(
                     prompt
                 )
             )
