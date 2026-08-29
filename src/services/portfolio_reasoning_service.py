@@ -1,41 +1,57 @@
 """
 portfolio_reasoning_service.py
 
-Provides the reasoning boundary for Portfolio Intelligence.
+LLM-enabled reasoning service for Portfolio Intelligence.
 
 Responsibilities
 ----------------
-- Accept a portfolio user query and analytical context.
-- Interpret the analytical context at a structural level.
-- Prepare the information required for portfolio insight generation.
-- Populate the interpretive sections of PortfolioAgentResponse.
-- Preserve analytical evidence for explainability.
+- Accept the user query and complete analytical context.
+- Build the reasoning prompt.
+- Invoke the configured LLM provider.
+- Return structured portfolio reasoning.
 
 The service does NOT:
-- Access the Portfolio Repository directly.
+- Access databases.
 - Perform portfolio calculations.
 - Select individual analytics services.
-- Implement intent routing.
-- Depend on a specific LLM provider.
-
-LLM-based reasoning can be introduced behind this service later
-without changing PortfolioAgent or PortfolioAnalyticsService.
+- Depend on a specific LLM vendor or framework.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, Optional
 
 from src.models.portfolio_agent_response import (
     PortfolioAgentResponse,
 )
 
+from src.services.llm_provider import (
+    LLMProvider,
+)
+
+from src.services.portfolio_reasoning_prompt import (
+    PortfolioReasoningPromptBuilder,
+)
+
 
 class PortfolioReasoningService:
     """
-    Reasoning service for Portfolio Intelligence.
-
-    Acts as the boundary between deterministic portfolio analytics
-    and future LLM-based interpretation.
+    LLM-enabled Portfolio Intelligence reasoning service.
     """
+
+    def __init__(
+        self,
+        llm_provider: Optional[LLMProvider] = None,
+        prompt_builder: Optional[
+            PortfolioReasoningPromptBuilder
+        ] = None,
+    ) -> None:
+
+        self.llm_provider = llm_provider
+
+        self.prompt_builder = (
+            prompt_builder
+            if prompt_builder is not None
+            else PortfolioReasoningPromptBuilder()
+        )
 
     # --------------------------------------------------------------
     # Main Reasoning Entry Point
@@ -47,28 +63,7 @@ class PortfolioReasoningService:
         analytical_context: Dict[str, Any],
     ) -> PortfolioAgentResponse:
         """
-        Generate a structured portfolio response from the
-        supplied analytical context.
-
-        Parameters
-        ----------
-        query:
-            Original portfolio-related user request.
-
-        analytical_context:
-            Complete analytical context produced by
-            PortfolioAnalyticsService.
-
-        Returns
-        -------
-        PortfolioAgentResponse
-            Structured portfolio response.
-
-        Notes
-        -----
-        The current implementation provides deterministic
-        structural reasoning only. LLM-backed interpretation
-        can be introduced without changing this interface.
+        Generate portfolio reasoning from analytical context.
         """
 
         if not query or not query.strip():
@@ -88,42 +83,97 @@ class PortfolioReasoningService:
                 query=query,
             )
 
-        facts = self._build_facts(
-            analytical_context
-        )
+        try:
 
-        observations = self._build_observations(
-            analytical_context
-        )
+            facts = self._build_facts(
+                analytical_context
+            )
 
-        risks = self._build_risk_context(
-            analytical_context
-        )
+            evidence = self._build_evidence(
+                analytical_context
+            )
 
-        trends = self._build_trend_context(
-            analytical_context
-        )
+            # ------------------------------------------------------
+            # LLM Reasoning
+            # ------------------------------------------------------
 
-        opportunities = self._build_opportunity_context(
-            analytical_context
-        )
+            if self.llm_provider is None:
 
-        evidence = self._build_evidence(
-            analytical_context
-        )
+                return PortfolioAgentResponse(
+                    success=True,
+                    query=query,
+                    facts=facts,
+                    evidence=evidence,
+                    message=(
+                        "Analytical context prepared. "
+                        "LLM reasoning provider is not configured."
+                    ),
+                )
+
+            prompt = (
+                self.prompt_builder.build(
+                    query=query,
+                    analytical_context=analytical_context,
+                )
+            )
+
+            llm_response = (
+                self.llm_provider.generate(
+                    prompt
+                )
+            )
+
+            return self._build_llm_response(
+                query=query,
+                facts=facts,
+                evidence=evidence,
+                llm_response=llm_response,
+            )
+
+        except Exception as exc:
+
+            return PortfolioAgentResponse.error_response(
+                message=(
+                    "Portfolio reasoning failed: "
+                    f"{str(exc)}"
+                ),
+                query=query,
+            )
+
+    # --------------------------------------------------------------
+    # LLM Response Mapping
+    # --------------------------------------------------------------
+
+    def _build_llm_response(
+        self,
+        query: str,
+        facts: list[dict],
+        evidence: list[dict],
+        llm_response: str,
+    ) -> PortfolioAgentResponse:
+        """
+        Map the LLM response into PortfolioAgentResponse.
+
+        Initial implementation keeps the raw LLM output inside
+        observations until structured-output parsing is introduced.
+        """
 
         return PortfolioAgentResponse(
             success=True,
             query=query,
             facts=facts,
-            observations=observations,
-            risks=risks,
-            trends=trends,
-            opportunities=opportunities,
+            observations=[
+                {
+                    "type": "llm_analysis",
+                    "content": llm_response,
+                }
+            ],
+            risks=[],
+            trends=[],
+            opportunities=[],
             evidence=evidence,
             message=(
-                "Portfolio analytical context "
-                "processed successfully."
+                "Portfolio reasoning completed successfully."
             ),
         )
 
@@ -134,138 +184,18 @@ class PortfolioReasoningService:
     @staticmethod
     def _build_facts(
         analytical_context: Dict[str, Any],
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict]:
         """
-        Preserve analytical information as structured facts.
-
-        No calculations or interpretation are performed here.
+        Preserve analytical domains as structured facts.
         """
-
-        facts = []
-
-        for domain, data in analytical_context.items():
-
-            facts.append(
-                {
-                    "domain": domain,
-                    "data": data,
-                }
-            )
-
-        return facts
-
-    # --------------------------------------------------------------
-    # Observations
-    # --------------------------------------------------------------
-
-    @staticmethod
-    def _build_observations(
-        analytical_context: Dict[str, Any],
-    ) -> List[Dict[str, Any]]:
-        """
-        Build high-level structural observations.
-
-        The current implementation intentionally avoids
-        generating natural-language conclusions. This method
-        establishes the contract for future LLM reasoning.
-        """
-
-        observations = []
-
-        if "kpis" in analytical_context:
-
-            observations.append(
-                {
-                    "type": "portfolio_kpi_context",
-                    "source": "kpis",
-                }
-            )
-
-        if "segmentation" in analytical_context:
-
-            observations.append(
-                {
-                    "type": "portfolio_segmentation_context",
-                    "source": "segmentation",
-                }
-            )
-
-        return observations
-
-    # --------------------------------------------------------------
-    # Risk Context
-    # --------------------------------------------------------------
-
-    @staticmethod
-    def _build_risk_context(
-        analytical_context: Dict[str, Any],
-    ) -> List[Dict[str, Any]]:
-        """
-        Extract the portfolio risk context.
-
-        Risk calculations remain owned by PortfolioRiskService.
-        """
-
-        if "risk" not in analytical_context:
-
-            return []
 
         return [
             {
-                "source": "risk",
-                "data": analytical_context["risk"],
+                "domain": domain,
+                "data": data,
             }
-        ]
-
-    # --------------------------------------------------------------
-    # Trend Context
-    # --------------------------------------------------------------
-
-    @staticmethod
-    def _build_trend_context(
-        analytical_context: Dict[str, Any],
-    ) -> List[Dict[str, Any]]:
-        """
-        Extract the portfolio trend context.
-
-        Trend calculations remain owned by PortfolioTrendService.
-        """
-
-        if "trends" not in analytical_context:
-
-            return []
-
-        return [
-            {
-                "source": "trends",
-                "data": analytical_context["trends"],
-            }
-        ]
-
-    # --------------------------------------------------------------
-    # Opportunity Context
-    # --------------------------------------------------------------
-
-    @staticmethod
-    def _build_opportunity_context(
-        analytical_context: Dict[str, Any],
-    ) -> List[Dict[str, Any]]:
-        """
-        Extract the portfolio opportunity context.
-
-        Opportunity calculations remain owned by
-        PortfolioOpportunityService.
-        """
-
-        if "opportunities" not in analytical_context:
-
-            return []
-
-        return [
-            {
-                "source": "opportunities",
-                "data": analytical_context["opportunities"],
-            }
+            for domain, data
+            in analytical_context.items()
         ]
 
     # --------------------------------------------------------------
@@ -275,24 +205,15 @@ class PortfolioReasoningService:
     @staticmethod
     def _build_evidence(
         analytical_context: Dict[str, Any],
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict]:
         """
-        Build traceable evidence references from the analytical
-        context.
-
-        Evidence identifies the analytical domain from which the
-        information originated.
+        Preserve analytical-domain traceability.
         """
 
-        evidence = []
-
-        for domain in analytical_context:
-
-            evidence.append(
-                {
-                    "source": "PortfolioAnalyticsService",
-                    "domain": domain,
-                }
-            )
-
-        return evidence
+        return [
+            {
+                "source": "PortfolioAnalyticsService",
+                "domain": domain,
+            }
+            for domain in analytical_context
+        ]
