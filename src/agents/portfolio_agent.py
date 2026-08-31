@@ -143,4 +143,3 @@ class PortfolioAgent:
                     f"Portfolio agent processing failed: {exc}"
                 ),
             )
-```
