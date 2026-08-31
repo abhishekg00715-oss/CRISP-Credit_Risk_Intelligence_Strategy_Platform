@@ -1,20 +1,20 @@
+
 """
 coordinator_agent.py
 
 Purpose
 -------
-Central orchestration layer responsible
-for routing user requests to the
-appropriate specialist agent.
+Central orchestration layer responsible for routing user requests
+to the appropriate specialist agent.
 
 Current Capabilities
 --------------------
 - Policy Agent
 - Customer Agent
+- Portfolio Agent
 
 Future Capabilities
 -------------------
-- Portfolio Agent
 - Recommendation Agent
 - Explainability Agent
 
@@ -25,6 +25,10 @@ Responsibilities
 - Aggregate responses
 - Return standardized orchestration response
 
+The Coordinator does not contain specialist business logic.
+It relies on IntentRoutingService to determine the appropriate
+specialist agent(s).
+
 Author
 ------
 Credit Risk Research Agent
@@ -33,29 +37,41 @@ Credit Risk Research Agent
 import time
 from typing import Any, Dict
 
-from src.agents.customer_agent import CustomerAgent
-from src.agents.policy_agent import PolicyAgent
+from src.agents.customer_agent import (
+    CustomerAgent,
+)
+
+from src.agents.policy_agent import (
+    PolicyAgent,
+)
+
+from src.agents.portfolio_agent import (
+    PortfolioAgent,
+)
 
 from src.services.intent_routing_service import (
-    IntentRoutingService
+    IntentRoutingService,
 )
 
 from src.services.response_formatting_service import (
-    ResponseFormattingService
+    ResponseFormattingService,
 )
 
 from src.logging.query_logger import (
-    QueryLogger
+    QueryLogger,
 )
 
 from src.logging.agent_execution_logger import (
-    AgentExecutionLogger
+    AgentExecutionLogger,
 )
 
 
 class CoordinatorAgent:
     """
     Central orchestration agent.
+
+    Routes incoming requests to specialist agents and returns
+    a standardized orchestration response.
     """
 
     QUERY_INPUT = "query"
@@ -68,14 +84,14 @@ class CoordinatorAgent:
 
     def __init__(
         self,
-        routing_service: IntentRoutingService
+        routing_service: IntentRoutingService,
     ) -> None:
         """
         Parameters
         ----------
         routing_service
-            Fully initialized routing service
-            supplied by ApplicationStartup.
+            Fully initialized routing service supplied by
+            ApplicationStartup.
         """
 
         self.routing_service = routing_service
@@ -99,6 +115,13 @@ class CoordinatorAgent:
     # ---------------------------------------------------------
 
     def _register_agents(self) -> None:
+        """
+        Register all specialist agents with the Coordinator.
+
+        The Coordinator uses a common registration contract so
+        that specialist-specific invocation logic remains inside
+        the respective agent.
+        """
 
         self._agents = {
 
@@ -108,7 +131,7 @@ class CoordinatorAgent:
 
                 "method": "answer_question",
 
-                "input_type": self.QUERY_INPUT
+                "input_type": self.QUERY_INPUT,
 
             },
 
@@ -118,10 +141,19 @@ class CoordinatorAgent:
 
                 "method": "retrieve_customer_profile",
 
-                "input_type": self.CUSTOMER_ID_INPUT
+                "input_type": self.CUSTOMER_ID_INPUT,
 
-            }
+            },
 
+            "portfolio": {
+
+                "instance": PortfolioAgent(),
+
+                "method": "process",
+
+                "input_type": self.QUERY_INPUT,
+
+            },
         }
 
     # ---------------------------------------------------------
@@ -131,15 +163,17 @@ class CoordinatorAgent:
     def route_query(
         self,
         query: str,
-        correlation_id: str
+        correlation_id: str,
     ) -> Dict[str, Any]:
+        """
+        Route a query to the specialist agent(s) selected by
+        IntentRoutingService.
+        """
 
         routing_decision = (
-
             self.routing_service.route_request(
                 query
             )
-
         )
 
         agent_names = (
@@ -151,22 +185,16 @@ class CoordinatorAgent:
         )
 
         self.query_logger.log_query(
-
             query=query,
-
             agents=agent_names,
-
-            customer_id=customer_id
-
+            customer_id=customer_id,
         )
 
         if not agent_names:
 
             return self._build_error_response(
-
                 "Unable to determine the "
                 "appropriate agent."
-
             )
 
         responses = {}
@@ -174,17 +202,11 @@ class CoordinatorAgent:
         for agent_name in agent_names:
 
             responses[agent_name] = (
-
                 self._invoke_agent(
-
                     agent_name=agent_name,
-
                     query=query,
-
-                    correlation_id=correlation_id
-
+                    correlation_id=correlation_id,
                 )
-
             )
 
         return {
@@ -207,10 +229,8 @@ class CoordinatorAgent:
 
                 "similarity_results": (
                     routing_decision.similarity_results
-                )
-
-            }
-
+                ),
+            },
         }
 
     # ---------------------------------------------------------
@@ -221,17 +241,21 @@ class CoordinatorAgent:
         self,
         agent_name: str,
         query: str,
-        correlation_id: str
+        correlation_id: str,
     ) -> Any:
+        """
+        Invoke a registered specialist agent.
+
+        Specialist-specific input handling is controlled by the
+        registration metadata rather than by hard-coded agent
+        names.
+        """
 
         agent = self._agents[agent_name]
 
         handler = getattr(
-
             agent["instance"],
-
-            agent["method"]
-
+            agent["method"],
         )
 
         input_type = (
@@ -250,15 +274,17 @@ class CoordinatorAgent:
 
         try:
 
+            # --------------------------------------------------
+            # Customer Agent
+            # --------------------------------------------------
+
             if input_type == self.CUSTOMER_ID_INPUT:
 
                 customer_id = (
-
                     self.routing_service
                     .extract_customer_id(
                         query
                     )
-
                 )
 
                 if customer_id is None:
@@ -276,8 +302,7 @@ class CoordinatorAgent:
 
                         "assessment": None,
 
-                        "risk_summary": None
-
+                        "risk_summary": None,
                     }
 
                 else:
@@ -288,11 +313,19 @@ class CoordinatorAgent:
                         customer_id
                     )
 
+            # --------------------------------------------------
+            # Query-based Agents
+            # --------------------------------------------------
+
             elif input_type == self.QUERY_INPUT:
 
                 response = handler(
                     query
                 )
+
+            # --------------------------------------------------
+            # Unsupported Registration
+            # --------------------------------------------------
 
             else:
 
@@ -305,8 +338,7 @@ class CoordinatorAgent:
                     "message": (
                         f"Unsupported input type: "
                         f"{input_type}"
-                    )
-
+                    ),
                 }
 
         except Exception as ex:
@@ -320,29 +352,18 @@ class CoordinatorAgent:
         finally:
 
             elapsed = (
-
                 time.perf_counter()
-
                 - start
-
             ) * 1000
 
             self.execution_logger.log_execution(
-
                 correlation_id=correlation_id,
-
                 agent_name=agent_name,
-
                 input_summary=input_summary,
-
                 response=response,
-
                 execution_time_ms=elapsed,
-
                 success=success,
-
-                error_message=error
-
+                error_message=error,
             )
 
         return response
@@ -353,8 +374,11 @@ class CoordinatorAgent:
 
     def _build_error_response(
         self,
-        message: str
+        message: str,
     ) -> Dict[str, Any]:
+        """
+        Build a standardized Coordinator error response.
+        """
 
         return {
 
@@ -364,8 +388,7 @@ class CoordinatorAgent:
 
             "agents_invoked": [],
 
-            "responses": {}
-
+            "responses": {},
         }
 
     # ---------------------------------------------------------
@@ -374,63 +397,37 @@ class CoordinatorAgent:
 
     def process_query(
         self,
-        query: str
+        query: str,
     ) -> Dict[str, Any]:
+        """
+        Process an incoming user query.
+
+        The Coordinator delegates routing to the
+        IntentRoutingService and specialist processing to the
+        selected agent(s).
+        """
 
         if not query.strip():
 
             return self._build_error_response(
-
                 "Please provide a valid query."
-
             )
 
         correlation_id = (
-
             self.execution_logger
             .create_correlation_id()
-
         )
 
         orchestration_response = (
-
             self.route_query(
-
                 query=query,
-
-                correlation_id=correlation_id
-
+                correlation_id=correlation_id,
             )
-
         )
 
         return (
-
             self.response_formatter
             .format_response(
                 orchestration_response
             )
-
         )
-
-
-# ---------------------------------------------------------
-# Test Harness
-# ---------------------------------------------------------
-
-if __name__ == "__main__":
-
-    from src.initialization.application_startup import (
-        ApplicationStartup
-    )
-
-    if __name__ == "__main__":
-
-        raise RuntimeError(
-            "CoordinatorAgent should be created "
-            "via ApplicationStartup."
-        )
-
-    from pprint import pprint
-
-    pprint(response)
