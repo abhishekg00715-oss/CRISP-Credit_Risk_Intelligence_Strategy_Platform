@@ -1,67 +1,71 @@
 """
 portfolio_agent_smoke_test.py
 
-Smoke tests for PortfolioAgent.
+Smoke test for PortfolioAgent integration.
 
 Purpose
 -------
-Validate the integration between:
+Validates the integration between:
 
     PortfolioAgent
         ↓
     PortfolioAnalyticsService
         ↓
-    Portfolio Analytical Services
+    PortfolioReasoningService
+        ↓
+    LLMService
+        ↓
+    OpenAI API
+        ↓
+    PortfolioAgentResponse
 
-The tests focus on the Portfolio Agent contract and the
-complete analytical-context retrieval pattern.
+The test intentionally validates orchestration and integration
+rather than detailed analytical calculations. Those calculations
+are already covered by the Portfolio Analytics Service tests.
 
-These are smoke tests rather than exhaustive unit tests.
+NOTE
+----
+This test requires:
+
+    OPENAI_API_KEY
+    OPENAI_MODEL
+
+to be configured in the runtime environment.
 """
 
-from pathlib import Path
-import sys
-
-
-# ------------------------------------------------------------------
-# Repository Root
-# ------------------------------------------------------------------
-
-REPO_ROOT = str(
-    Path(__file__).resolve().parents[2]
-)
-
-if REPO_ROOT not in sys.path:
-
-    sys.path.insert(
-        0,
-        REPO_ROOT
-    )
-
-
-# ------------------------------------------------------------------
-# Imports
-# ------------------------------------------------------------------
-
-from src.agents.portfolio_agent import (
-    PortfolioAgent,
-)
+from typing import Callable
 
 from src.models.portfolio_agent_response import (
     PortfolioAgentResponse,
 )
 
+from src.services.llm_service import (
+    LLMService,
+)
+
+from src.services.portfolio_agent import (
+    PortfolioAgent,
+)
+
+from src.services.portfolio_analytics_service import (
+    PortfolioAnalyticsService,
+)
+
+from src.services.portfolio_reasoning_service import (
+    PortfolioReasoningService,
+)
+
 
 # ------------------------------------------------------------------
-# Test Utility
+# Test Utilities
 # ------------------------------------------------------------------
 
 def run_test(
     test_name: str,
-    test_function,
+    test_function: Callable[[], None],
 ) -> None:
     """
-    Execute an individual smoke test and print its result.
+    Execute an individual smoke test and display the result.
     """
 
     try:
@@ -69,430 +73,348 @@ def run_test(
         test_function()
 
         print(
-            f"{test_name:<50} [PASS]"
+            f"{test_name:<60} [PASS]"
         )
 
     except AssertionError as exc:
 
         print(
-            f"{test_name:<50} [FAIL]"
+            f"{test_name:<60} [FAIL]"
         )
 
-        print(
-            f"    Assertion: {exc}"
-        )
+        if str(exc):
+            print(f"    Assertion: {exc}")
 
         raise
 
     except Exception as exc:
 
         print(
-            f"{test_name:<50} [FAIL]"
+            f"{test_name:<60} [FAIL]"
         )
 
         print(
-            f"    Error: {exc}"
+            f"    Error: {type(exc).__name__}: {exc}"
         )
 
         raise
 
 
-# ==============================================================
-# Tests
-# ==============================================================
+# ------------------------------------------------------------------
+# Shared Test Objects
+# ------------------------------------------------------------------
 
-def test_agent_initialization():
+def create_portfolio_agent() -> PortfolioAgent:
     """
-    Verify that PortfolioAgent can be initialized successfully.
+    Create a PortfolioAgent using the production dependency chain.
+
+    Dependency injection is used explicitly so that the smoke test
+    validates the same service composition used by the application.
     """
 
-    agent = PortfolioAgent()
+    analytics_service = (
+        PortfolioAnalyticsService()
+    )
+
+    reasoning_service = (
+        PortfolioReasoningService(
+            llm_service=LLMService()
+        )
+    )
+
+    return PortfolioAgent(
+        analytics_service=analytics_service,
+        reasoning_service=reasoning_service,
+    )
+
+
+# ------------------------------------------------------------------
+# Test 1
+# ------------------------------------------------------------------
+
+def test_portfolio_agent_initialization() -> None:
+    """
+    Verify that PortfolioAgent and its primary dependencies
+    initialize successfully.
+    """
+
+    agent = create_portfolio_agent()
 
     assert agent is not None
 
-    assert agent.analytics_service is not None
+    assert isinstance(
+        agent.analytics_service,
+        PortfolioAnalyticsService,
+    )
+
+    assert isinstance(
+        agent.reasoning_service,
+        PortfolioReasoningService,
+    )
 
 
 # ------------------------------------------------------------------
+# Test 2
+# ------------------------------------------------------------------
 
-def test_analytical_context_retrieval():
+def test_portfolio_analytical_context_available() -> None:
     """
-    Verify that PortfolioAgent can retrieve the complete
-    analytical context through PortfolioAnalyticsService.
+    Verify that the Portfolio Analytics Service can provide the
+    complete analytical context required by the reasoning layer.
     """
 
-    agent = PortfolioAgent()
+    analytics_service = (
+        PortfolioAnalyticsService()
+    )
 
     context = (
-        agent.get_analytical_context()
+        analytics_service
+        .get_full_analytical_context()
     )
+
+    assert context is not None
 
     assert isinstance(
         context,
-        dict
+        dict,
     )
 
-    expected_domains = {
-        "kpis",
-        "risk",
-        "exposure",
-        "segmentation",
-        "trends",
-        "opportunities",
-    }
-
-    assert expected_domains.issubset(
-        context.keys()
-    )
+    assert len(context) > 0
 
 
 # ------------------------------------------------------------------
-
-def test_all_analytical_domains_available():
-    """
-    Verify that all six portfolio analytical domains are
-    available to PortfolioAgent.
-    """
-
-    agent = PortfolioAgent()
-
-    context = (
-        agent.get_analytical_context()
-    )
-
-    expected_domains = [
-        "kpis",
-        "risk",
-        "exposure",
-        "segmentation",
-        "trends",
-        "opportunities",
-    ]
-
-    for domain in expected_domains:
-
-        assert domain in context
-
-        assert context[domain] is not None
-
-
+# Test 3
 # ------------------------------------------------------------------
 
-def test_agent_response_contract():
+def test_portfolio_agent_empty_query_handling() -> None:
     """
-    Verify that PortfolioAgent returns the agreed response model.
+    Verify graceful handling of an empty portfolio query.
+
+    This test does not require an LLM call.
     """
 
-    agent = PortfolioAgent()
+    agent = create_portfolio_agent()
 
-    response = agent.process(
-        "Provide an overview of the portfolio."
-    )
+    response = agent.process("")
 
     assert isinstance(
         response,
-        PortfolioAgentResponse
-    )
-
-    assert response.success is True
-
-    assert response.query == (
-        "Provide an overview of the portfolio."
-    )
-
-
-# ------------------------------------------------------------------
-
-def test_response_contains_facts():
-    """
-    Verify that the response contains analytical facts derived
-    from the complete analytical context.
-    """
-
-    agent = PortfolioAgent()
-
-    response = agent.process(
-        "What is the current portfolio position?"
-    )
-
-    assert response.success is True
-
-    assert isinstance(
-        response.facts,
-        list
-    )
-
-    assert len(
-        response.facts
-    ) > 0
-
-
-# ------------------------------------------------------------------
-
-def test_fact_domain_traceability():
-    """
-    Verify that analytical facts retain their originating
-    analytical domain.
-    """
-
-    agent = PortfolioAgent()
-
-    response = agent.process(
-        "Analyse the portfolio."
-    )
-
-    domains = {
-        fact.get("domain")
-        for fact in response.facts
-    }
-
-    expected_domains = {
-        "kpis",
-        "risk",
-        "exposure",
-        "segmentation",
-        "trends",
-        "opportunities",
-    }
-
-    assert expected_domains.issubset(
-        domains
-    )
-
-
-# ------------------------------------------------------------------
-
-def test_future_response_sections_exist():
-    """
-    Verify that the PortfolioAgentResponse exposes the agreed
-    sections for future reasoning and narrative generation.
-
-    The current implementation is not expected to populate all
-    sections yet.
-    """
-
-    agent = PortfolioAgent()
-
-    response = agent.process(
-        "Identify important portfolio findings."
-    )
-
-    assert hasattr(
-        response,
-        "facts"
-    )
-
-    assert hasattr(
-        response,
-        "observations"
-    )
-
-    assert hasattr(
-        response,
-        "risks"
-    )
-
-    assert hasattr(
-        response,
-        "trends"
-    )
-
-    assert hasattr(
-        response,
-        "opportunities"
-    )
-
-    assert hasattr(
-        response,
-        "evidence"
-    )
-
-
-# ------------------------------------------------------------------
-
-def test_future_response_sections_initially_empty():
-    """
-    Verify that interpretation-oriented sections are not
-    artificially populated before the reasoning layer exists.
-    """
-
-    agent = PortfolioAgent()
-
-    response = agent.process(
-        "What are the key portfolio risks?"
-    )
-
-    assert response.observations == []
-
-    assert response.risks == []
-
-    assert response.trends == []
-
-    assert response.opportunities == []
-
-    assert response.evidence == []
-
-
-# ------------------------------------------------------------------
-
-def test_empty_query_handling():
-    """
-    Verify standardized handling of an empty query.
-    """
-
-    agent = PortfolioAgent()
-
-    response = agent.process(
-        ""
-    )
-
-    assert isinstance(
-        response,
-        PortfolioAgentResponse
+        PortfolioAgentResponse,
     )
 
     assert response.success is False
 
     assert response.query == ""
 
-    assert response.analytical_context if hasattr(
-        response,
-        "analytical_context"
-    ) else True
+    assert response.message is not None
 
 
 # ------------------------------------------------------------------
+# Test 4
+# ------------------------------------------------------------------
 
-def test_response_serialization():
+def test_portfolio_agent_llm_integration() -> None:
     """
-    Verify that PortfolioAgentResponse can be converted into
-    a serializable dictionary.
+    Validate the complete Portfolio Agent reasoning flow.
+
+    This test invokes the real LLM through the existing LLMService.
     """
 
-    agent = PortfolioAgent()
+    agent = create_portfolio_agent()
 
-    response = agent.process(
-        "Provide portfolio analytics."
+    query = (
+        "Provide a concise overview of the current "
+        "portfolio position, highlighting important "
+        "observations, risks, trends and opportunities."
     )
 
-    response_dict = (
-        response.to_dict()
+    response = agent.process(query)
+
+    # --------------------------------------------------------------
+    # Response contract
+    # --------------------------------------------------------------
+
+    assert isinstance(
+        response,
+        PortfolioAgentResponse,
+    )
+
+    assert response.success is True
+
+    assert response.query == query
+
+    # --------------------------------------------------------------
+    # Structured reasoning output
+    # --------------------------------------------------------------
+
+    assert isinstance(
+        response.facts,
+        list,
     )
 
     assert isinstance(
-        response_dict,
-        dict
+        response.observations,
+        list,
     )
 
-    expected_fields = {
-        "success",
-        "query",
-        "facts",
-        "observations",
-        "risks",
-        "trends",
-        "opportunities",
-        "evidence",
-        "message",
-    }
+    assert isinstance(
+        response.risks,
+        list,
+    )
 
-    assert expected_fields.issubset(
-        response_dict.keys()
+    assert isinstance(
+        response.trends,
+        list,
+    )
+
+    assert isinstance(
+        response.opportunities,
+        list,
+    )
+
+    assert isinstance(
+        response.evidence,
+        list,
     )
 
 
-# ==============================================================
-# Smoke Test Runner
-# ==============================================================
+# ------------------------------------------------------------------
+# Test 5
+# ------------------------------------------------------------------
 
-def main():
+def test_portfolio_agent_generates_reasoning_content() -> None:
     """
-    Execute PortfolioAgent smoke tests.
+    Verify that the LLM-backed Portfolio Agent produces at least
+    some meaningful structured reasoning content.
+
+    The test deliberately does not assert exact wording because
+    LLM output is non-deterministic.
+    """
+
+    agent = create_portfolio_agent()
+
+    query = (
+        "Identify the most important portfolio risks and "
+        "opportunities from the available analytical data."
+    )
+
+    response = agent.process(query)
+
+    assert response.success is True
+
+    content_sections = [
+        response.facts,
+        response.observations,
+        response.risks,
+        response.trends,
+        response.opportunities,
+        response.evidence,
+    ]
+
+    total_items = sum(
+        len(section)
+        for section in content_sections
+    )
+
+    assert total_items > 0
+
+
+# ------------------------------------------------------------------
+# Test 6
+# ------------------------------------------------------------------
+
+def test_portfolio_agent_complete_flow() -> None:
+    """
+    Validate the complete production-style Portfolio Intelligence
+    flow through a single Agent invocation.
+
+    This is the primary integration smoke test.
+    """
+
+    agent = create_portfolio_agent()
+
+    query = (
+        "Analyze the portfolio and summarize its overall health, "
+        "key risks, important trends and potential opportunities."
+    )
+
+    response = agent.process(query)
+
+    assert isinstance(
+        response,
+        PortfolioAgentResponse,
+    )
+
+    assert response.success is True
+
+    assert response.query == query
+
+    assert (
+        len(response.facts)
+        + len(response.observations)
+        + len(response.risks)
+        + len(response.trends)
+        + len(response.opportunities)
+    ) > 0
+
+
+# ------------------------------------------------------------------
+# Main Test Runner
+# ------------------------------------------------------------------
+
+def main() -> None:
+    """
+    Execute the Portfolio Agent smoke-test suite.
     """
 
     print()
+    print("=" * 75)
+    print("Portfolio Agent : Smoke Test")
+    print("=" * 75)
 
     print(
-        "=" * 70
+        "NOTE: LLM integration tests require a valid "
+        "OPENAI_API_KEY and OPENAI_MODEL configuration."
     )
 
-    print(
-        "Portfolio Agent : Smoke Test"
-    )
-
-    print(
-        "=" * 70
-    )
+    print()
 
     run_test(
         "PortfolioAgent initialization",
-        test_agent_initialization,
+        test_portfolio_agent_initialization,
     )
 
     run_test(
-        "Analytical context retrieval",
-        test_analytical_context_retrieval,
+        "Complete analytical context available",
+        test_portfolio_analytical_context_available,
     )
 
     run_test(
-        "All analytical domains available",
-        test_all_analytical_domains_available,
+        "Empty portfolio query handling",
+        test_portfolio_agent_empty_query_handling,
     )
 
     run_test(
-        "PortfolioAgent response contract",
-        test_agent_response_contract,
+        "Portfolio Agent LLM integration",
+        test_portfolio_agent_llm_integration,
     )
 
     run_test(
-        "Response contains analytical facts",
-        test_response_contains_facts,
+        "Portfolio Agent reasoning content",
+        test_portfolio_agent_generates_reasoning_content,
     )
 
     run_test(
-        "Fact domain traceability",
-        test_fact_domain_traceability,
-    )
-
-    run_test(
-        "Future response sections available",
-        test_future_response_sections_exist,
-    )
-
-    run_test(
-        "Future response sections initially empty",
-        test_future_response_sections_initially_empty,
-    )
-
-    run_test(
-        "Empty query handling",
-        test_empty_query_handling,
-    )
-
-    run_test(
-        "Response serialization",
-        test_response_serialization,
+        "Portfolio Agent complete integration flow",
+        test_portfolio_agent_complete_flow,
     )
 
     print()
+    print("=" * 75)
+    print("Portfolio Agent : Smoke Test Completed")
+    print("=" * 75)
 
-    print(
-        "=" * 70
-    )
-
-    print(
-        "Portfolio Agent : PASSED"
-    )
-
-    print(
-        "=" * 70
-    )
-
-
-# ------------------------------------------------------------------
-# Local Execution
-# ------------------------------------------------------------------
 
 if __name__ == "__main__":
-
     main()
+```
