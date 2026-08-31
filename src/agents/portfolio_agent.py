@@ -1,3 +1,4 @@
+```python
 """
 portfolio_agent.py
 
@@ -11,7 +12,7 @@ Responsibilities
 - Return a structured PortfolioAgentResponse.
 
 The Portfolio Agent intentionally does NOT:
-- perform portfolio calculations,
+- perform business calculations,
 - directly access the Portfolio Repository,
 - select individual analytical services,
 - construct LLM prompts,
@@ -23,7 +24,7 @@ analytics services.
 LLM reasoning remains encapsulated within PortfolioReasoningService.
 
 The Agent therefore acts as a thin orchestration layer between
-the portfolio analytics and reasoning capabilities.
+portfolio analytics and portfolio reasoning.
 """
 
 from typing import Optional
@@ -43,10 +44,11 @@ from src.services.portfolio_reasoning_service import (
 
 class PortfolioAgent:
     """
-    Agent responsible for Portfolio Intelligence requests.
+    Agent responsible for processing Portfolio Intelligence
+    requests.
 
-    The agent retrieves the complete analytical portfolio context
-    and delegates interpretation and reasoning to the
+    The agent retrieves the complete analytical context and
+    delegates interpretation and reasoning to the
     PortfolioReasoningService.
     """
 
@@ -83,34 +85,35 @@ class PortfolioAgent:
         """
         Process a portfolio intelligence request.
 
-        Workflow
-        --------
-        1. Retrieve the complete analytical portfolio context.
-        2. Pass the context and user query to the reasoning service.
-        3. Return the structured PortfolioAgentResponse.
+        Processing flow
+        ---------------
+        1. Validate the incoming query.
+        2. Retrieve the complete analytical portfolio context.
+        3. Delegate reasoning to PortfolioReasoningService.
+        4. Return the resulting PortfolioAgentResponse.
 
         The complete analytical context is intentionally provided
-        to the reasoning service rather than selectively invoking
-        individual portfolio analytics services.
-
-        This allows the reasoning layer to determine which
-        information is relevant to the user's request.
+        to the reasoning service. The Portfolio Agent does not
+        selectively choose individual analytics based on keywords
+        or query text.
         """
+
+        # ----------------------------------------------------------
+        # Step 1: Validate request
+        # ----------------------------------------------------------
 
         if not query or not query.strip():
 
             return PortfolioAgentResponse(
                 success=False,
                 query=query,
-                message=(
-                    "Portfolio query cannot be empty."
-                ),
+                message="Portfolio query cannot be empty.",
             )
 
         try:
 
             # ------------------------------------------------------
-            # Step 1: Retrieve complete analytical context
+            # Step 2: Retrieve complete analytical context
             # ------------------------------------------------------
 
             analytical_context = (
@@ -119,18 +122,19 @@ class PortfolioAgent:
             )
 
             # ------------------------------------------------------
-            # Step 2: Delegate reasoning
+            # Step 3: Delegate reasoning
             # ------------------------------------------------------
 
-            return (
-                self.reasoning_service
-                .reason(
-                    query=query,
-                    analytical_context=analytical_context,
-                )
+            return self.reasoning_service.reason(
+                query=query,
+                analytical_context=analytical_context,
             )
 
         except Exception as exc:
+
+            # ------------------------------------------------------
+            # Step 4: Graceful agent-level failure
+            # ------------------------------------------------------
 
             return PortfolioAgentResponse(
                 success=False,
@@ -139,3 +143,4 @@ class PortfolioAgent:
                     f"Portfolio agent processing failed: {exc}"
                 ),
             )
+```
