@@ -10,9 +10,6 @@ python-dotenv
 pandas
 numpy
 pytest
-json
-typing
-pathlib 
 sentence-transformers
 torch
 chromadb

@@ -10,3 +10,6 @@
 {"timestamp": "2026-07-28T12:04:58", "query": "Can customer CUST000002 receive a premium credit card?\n\n", "agents": ["customer", "policy"], "customer_id": "CUST000002"}
 {"timestamp": "2026-07-28T12:12:40", "query": "Can customer CUST000004 receive a premium credit card?\n\n", "agents": ["customer", "policy"], "customer_id": "CUST000004"}
 {"timestamp": "2026-07-28T12:18:43", "query": "analyze CUST000004 for credit risk\n\n", "agents": ["customer", "policy", "portfolio", "recommendation"], "customer_id": "CUST000004"}
+{"timestamp": "2026-08-31T21:52:05", "query": "Provide a concise overview of the portfolio including its key risks, trends and opportunities.", "agents": ["portfolio"], "customer_id": null}
+{"timestamp": "2026-08-31T21:52:24", "query": "Analyze the current portfolio and identify the most important risks, trends and business opportunities.", "agents": ["portfolio"], "customer_id": null}
+{"timestamp": "2026-08-31T21:52:41", "query": "What is the overall health of the portfolio and where are the major risk concentrations?", "agents": ["portfolio"], "customer_id": null}
