@@ -43,7 +43,7 @@ from src.services.llm_service import (
     LLMService,
 )
 
-from src.services.portfolio_agent import (
+from src.agents.portfolio_agent import (
     PortfolioAgent,
 )
 
