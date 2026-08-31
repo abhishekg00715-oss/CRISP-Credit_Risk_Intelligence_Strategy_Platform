@@ -102,16 +102,16 @@ def run_test(
 
 def create_coordinator() -> CoordinatorAgent:
     """
-    Create CoordinatorAgent using the application startup
-    configuration.
-
-    This intentionally uses the production initialization path
-    rather than manually constructing the routing service.
+    Create CoordinatorAgent through the existing
+    ApplicationStartup lifecycle.
     """
 
-    startup = ApplicationStartup()
+    startup = (
+        ApplicationStartup()
+        .initialize()
+    )
 
-    return startup.initialize()
+    return startup.coordinator
 
 
 # ------------------------------------------------------------------
