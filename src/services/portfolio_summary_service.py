@@ -1,15 +1,6 @@
+"""
+    portfolio_summary_service.py
 
-
-
-from typing import Any, Dict
-
-from src.services.portfolio_analytics_service import (
-    PortfolioAnalyticsService,
-)
-
-
-class PortfolioSummaryService:
-    """
     Consolidates portfolio analytics into a reusable executive
     analytical summary.
 
@@ -37,7 +28,19 @@ class PortfolioSummaryService:
         PortfolioSummaryService
                 ↓
         PortfolioAgent / Reasoning Layer
-    """
+"""
+
+
+
+from typing import Any, Dict
+
+from src.services.portfolio_analytics_service import (
+    PortfolioAnalyticsService,
+)
+
+
+class PortfolioSummaryService:
+   
 
     SUMMARY_SOURCE = "PortfolioSummaryService"
 
