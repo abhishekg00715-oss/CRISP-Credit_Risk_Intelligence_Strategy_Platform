@@ -1,3 +1,4 @@
+
 """
 portfolio_reasoning_service.py
 
@@ -8,6 +9,7 @@ Responsibilities
 - Accept the user query and complete analytical context.
 - Build the reasoning prompt.
 - Invoke the configured LLM service.
+- Parse and validate structured LLM reasoning.
 - Return structured portfolio reasoning.
 
 The service does NOT:
@@ -17,6 +19,7 @@ The service does NOT:
 - Depend on a specific LLM vendor or framework.
 """
 
+import json
 from typing import Any, Dict, Optional
 
 from src.models.portfolio_agent_response import (
@@ -37,6 +40,13 @@ class PortfolioReasoningService:
     LLM-enabled Portfolio Intelligence reasoning service.
     """
 
+    REQUIRED_REASONING_FIELDS = (
+        "observations",
+        "risks",
+        "trends",
+        "opportunities",
+    )
+
     def __init__(
         self,
         llm_service: Optional[LLMService] = None,
@@ -44,7 +54,7 @@ class PortfolioReasoningService:
             PortfolioReasoningPromptBuilder
         ] = None,
     ) -> None:
-    
+
         self.llm_service = (
             llm_service
             if llm_service is not None
@@ -67,7 +77,8 @@ class PortfolioReasoningService:
         analytical_context: Dict[str, Any],
     ) -> PortfolioAgentResponse:
         """
-        Generate portfolio reasoning from analytical context.
+        Generate structured portfolio reasoning from
+        deterministic analytical context.
         """
 
         if not query or not query.strip():
@@ -156,30 +167,177 @@ class PortfolioReasoningService:
         llm_response: str,
     ) -> PortfolioAgentResponse:
         """
-        Map the LLM response into PortfolioAgentResponse.
+        Parse and map the structured LLM response into
+        PortfolioAgentResponse.
 
-        Initial implementation keeps the raw LLM output inside
-        observations until structured-output parsing is introduced.
+        The LLM is expected to return a JSON object containing:
+
+        - observations
+        - risks
+        - trends
+        - opportunities
+
+        Evidence remains deterministic and is supplied by the
+        PortfolioReasoningService rather than being generated
+        by the LLM.
         """
 
-        return PortfolioAgentResponse(
-            success=True,
-            query=query,
-            facts=facts,
-            observations=[
-                {
-                    "type": "llm_analysis",
-                    "content": llm_response,
-                }
-            ],
-            risks=[],
-            trends=[],
-            opportunities=[],
-            evidence=evidence,
-            message=(
-                "Portfolio reasoning completed successfully."
-            ),
+        try:
+
+            reasoning = self._parse_llm_response(
+                llm_response
+            )
+
+            return PortfolioAgentResponse(
+                success=True,
+                query=query,
+                facts=facts,
+                observations=reasoning["observations"],
+                risks=reasoning["risks"],
+                trends=reasoning["trends"],
+                opportunities=reasoning["opportunities"],
+                evidence=evidence,
+                message=(
+                    "Portfolio reasoning completed successfully."
+                ),
+            )
+
+        except ValueError as exc:
+
+            return PortfolioAgentResponse.error_response(
+                message=(
+                    "Portfolio reasoning failed: "
+                    f"{str(exc)}"
+                ),
+                query=query,
+            )
+
+    # --------------------------------------------------------------
+    # LLM Response Parsing
+    # --------------------------------------------------------------
+
+    @classmethod
+    def _parse_llm_response(
+        cls,
+        llm_response: str,
+    ) -> Dict[str, list]:
+        """
+        Parse and validate the structured LLM response.
+
+        Supports:
+        - Plain JSON responses.
+        - JSON responses wrapped in markdown code fences.
+
+        Raises
+        ------
+        ValueError
+            If the response is empty, invalid JSON, does not
+            contain an object, or is missing required sections.
+        """
+
+        if not llm_response or not llm_response.strip():
+
+            raise ValueError(
+                "LLM returned an empty response."
+            )
+
+        cleaned_response = (
+            cls._clean_llm_response(
+                llm_response
+            )
         )
+
+        try:
+
+            parsed_response = json.loads(
+                cleaned_response
+            )
+
+        except json.JSONDecodeError as exc:
+
+            raise ValueError(
+                "LLM returned invalid structured JSON."
+            ) from exc
+
+        if not isinstance(
+            parsed_response,
+            dict,
+        ):
+
+            raise ValueError(
+                "LLM structured response must be a JSON object."
+            )
+
+        missing_fields = [
+            field
+            for field in cls.REQUIRED_REASONING_FIELDS
+            if field not in parsed_response
+        ]
+
+        if missing_fields:
+
+            raise ValueError(
+                "LLM structured response is missing "
+                "required fields: "
+                + ", ".join(missing_fields)
+            )
+
+        for field in cls.REQUIRED_REASONING_FIELDS:
+
+            value = parsed_response[field]
+
+            if not isinstance(value, list):
+
+                raise ValueError(
+                    f"LLM reasoning field '{field}' "
+                    "must be a JSON array."
+                )
+
+        return {
+            field: parsed_response[field]
+            for field in cls.REQUIRED_REASONING_FIELDS
+        }
+
+    # --------------------------------------------------------------
+    # LLM Response Cleanup
+    # --------------------------------------------------------------
+
+    @staticmethod
+    def _clean_llm_response(
+        llm_response: str,
+    ) -> str:
+        """
+        Remove common markdown wrappers around JSON.
+
+        Example supported response:
+
+        ```json
+        {
+            "observations": [],
+            "risks": [],
+            "trends": [],
+            "opportunities": []
+        }
+        ```
+        """
+
+        response = llm_response.strip()
+
+        if response.startswith("```"):
+
+            lines = response.splitlines()
+
+            if lines:
+
+                lines = lines[1:]
+
+            if lines and lines[-1].strip() == "```":
+
+                lines = lines[:-1]
+
+            response = "\n".join(lines).strip()
+
+        return response
 
     # --------------------------------------------------------------
     # Facts
@@ -191,6 +349,9 @@ class PortfolioReasoningService:
     ) -> list[dict]:
         """
         Preserve analytical domains as structured facts.
+
+        Facts originate from deterministic analytics and are not
+        generated by the LLM.
         """
 
         return [
@@ -212,6 +373,9 @@ class PortfolioReasoningService:
     ) -> list[dict]:
         """
         Preserve analytical-domain traceability.
+
+        Evidence identifies the deterministic analytical service
+        and domain that supplied the reasoning context.
         """
 
         return [
