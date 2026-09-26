@@ -1080,5 +1080,65 @@
         "input": "What is the minimum credit score required for a premium credit card?",
         "response_summary": "The minimum credit score required for a premium credit card is at least 750.\n\n### Summary of Applicable Policy:\nThe Premium Credit Card Eligibility Policy outlines the requirements for applicants seeking premium and rewards-based credit card products",
         "error_message": null
+    },
+    {
+        "timestamp": "2026-09-26T12:20:42.225876",
+        "correlation_id": "ee59faa7-a19b-4c2d-ad16-7ef4aec936ba",
+        "agent": "portfolio",
+        "status": "SUCCESS",
+        "execution_time_ms": 6432.66,
+        "input": "Provide a concise overview of the portfolio including its key risks, trends and opportunities.",
+        "response_summary": "PortfolioAgentResponse(success=True, query='Provide a concise overview of the portfolio including its key risks, trends and opportunities.', facts=[{'domain': 'summary', 'data': {'kpis': {'snapshot_date': '2026-08-04', 'active_customers': 100, 'total",
+        "error_message": null
+    },
+    {
+        "timestamp": "2026-09-26T12:20:57.050317",
+        "correlation_id": "6f80901f-f1f7-4932-b5d4-cfa40d24e4f7",
+        "agent": "portfolio",
+        "status": "SUCCESS",
+        "execution_time_ms": 3869.22,
+        "input": "Analyze the current portfolio and identify the most important risks, trends and business opportunities.",
+        "response_summary": "PortfolioAgentResponse(success=True, query='Analyze the current portfolio and identify the most important risks, trends and business opportunities.', facts=[{'domain': 'summary', 'data': {'kpis': {'snapshot_date': '2026-08-04', 'active_customers': 10",
+        "error_message": null
+    },
+    {
+        "timestamp": "2026-09-26T12:21:12.014787",
+        "correlation_id": "967a0d4d-cabb-494f-8766-87c24127611f",
+        "agent": "portfolio",
+        "status": "SUCCESS",
+        "execution_time_ms": 3910.31,
+        "input": "What is the overall health of the portfolio and where are the major risk concentrations?",
+        "response_summary": "PortfolioAgentResponse(success=True, query='What is the overall health of the portfolio and where are the major risk concentrations?', facts=[{'domain': 'summary', 'data': {'kpis': {'snapshot_date': '2026-08-04', 'active_customers': 100, 'total_portf",
+        "error_message": null
+    },
+    {
+        "timestamp": "2026-09-26T12:27:24.251361",
+        "correlation_id": "8bd0b714-ca86-401d-97f2-4848407b9ec6",
+        "agent": "portfolio",
+        "status": "SUCCESS",
+        "execution_time_ms": 4671.48,
+        "input": "Provide a concise overview of the portfolio including its key risks, trends and opportunities.",
+        "response_summary": "PortfolioAgentResponse(success=True, query='Provide a concise overview of the portfolio including its key risks, trends and opportunities.', facts=[{'domain': 'summary', 'data': {'kpis': {'snapshot_date': '2026-08-04', 'active_customers': 100, 'total",
+        "error_message": null
+    },
+    {
+        "timestamp": "2026-09-26T12:27:38.550013",
+        "correlation_id": "b21a9c30-6d69-464e-9ce9-003441838972",
+        "agent": "portfolio",
+        "status": "SUCCESS",
+        "execution_time_ms": 3331.03,
+        "input": "Analyze the current portfolio and identify the most important risks, trends and business opportunities.",
+        "response_summary": "PortfolioAgentResponse(success=True, query='Analyze the current portfolio and identify the most important risks, trends and business opportunities.', facts=[{'domain': 'summary', 'data': {'kpis': {'snapshot_date': '2026-08-04', 'active_customers': 10",
+        "error_message": null
+    },
+    {
+        "timestamp": "2026-09-26T12:27:54.035250",
+        "correlation_id": "e200d91b-8af0-458b-ba92-16e0938b58cb",
+        "agent": "portfolio",
+        "status": "SUCCESS",
+        "execution_time_ms": 4478.69,
+        "input": "What is the overall health of the portfolio and where are the major risk concentrations?",
+        "response_summary": "PortfolioAgentResponse(success=True, query='What is the overall health of the portfolio and where are the major risk concentrations?', facts=[{'domain': 'summary', 'data': {'kpis': {'snapshot_date': '2026-08-04', 'active_customers': 100, 'total_portf",
+        "error_message": null
     }
 ]

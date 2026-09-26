@@ -85,6 +85,7 @@ class CoordinatorAgent:
     def __init__(
         self,
         routing_service: IntentRoutingService,
+        portfolio_agent: PortfolioAgent,
     ) -> None:
         """
         Parameters
@@ -95,6 +96,7 @@ class CoordinatorAgent:
         """
 
         self.routing_service = routing_service
+        self.portfolio_agent = portfolio_agent
 
         self._register_agents()
 
@@ -147,7 +149,7 @@ class CoordinatorAgent:
 
             "portfolio": {
 
-                "instance": PortfolioAgent(),
+                "instance": self.portfolio_agent,
 
                 "method": "process",
 

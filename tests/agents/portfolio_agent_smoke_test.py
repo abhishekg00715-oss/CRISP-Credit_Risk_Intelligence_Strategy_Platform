@@ -13,7 +13,7 @@ Validates the integration between:
         ↓
     PortfolioReasoningService
         ↓
-    LLMService
+    LLMService  
         ↓
     OpenAI API
         ↓
@@ -53,6 +53,10 @@ from src.services.portfolio_analytics_service import (
 
 from src.services.portfolio_reasoning_service import (
     PortfolioReasoningService,
+)
+
+from src.services.portfolio_summary_service import (
+    PortfolioSummaryService,
 )
 
 
@@ -112,9 +116,9 @@ def create_portfolio_agent() -> PortfolioAgent:
     validates the same service composition used by the application.
     """
 
-    analytics_service = (
-        PortfolioAnalyticsService()
-    )
+#    analytics_service = (
+#        PortfolioAnalyticsService()
+#   )
 
     reasoning_service = (
         PortfolioReasoningService(
@@ -122,9 +126,15 @@ def create_portfolio_agent() -> PortfolioAgent:
         )
     )
 
+    summary_service = (
+        PortfolioSummaryService(
+            analytics_service=PortfolioAnalyticsService()
+        )
+    )
+
     return PortfolioAgent(
-        analytics_service=analytics_service,
-        reasoning_service=reasoning_service,
+        #analytics_service=analytics_service,
+        reasoning_service=reasoning_service,summary_service=summary_service
     )
 
 
@@ -143,8 +153,8 @@ def test_portfolio_agent_initialization() -> None:
     assert agent is not None
 
     assert isinstance(
-        agent.analytics_service,
-        PortfolioAnalyticsService,
+        agent.summary_service,
+        PortfolioSummaryService,
     )
 
     assert isinstance(

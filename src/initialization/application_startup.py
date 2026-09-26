@@ -13,18 +13,36 @@ Responsibilities
 - Expose shared services
 - Execute startup once
 
-Author
-------
-Credit Risk Research Agent
+
 """
 
 from src.initialization.routing_bootstrap import (
     RoutingBootstrap
 )
+
 from src.agents.coordinator_agent import (
     CoordinatorAgent
 )
 
+from src.agents.portfolio_agent import (
+    PortfolioAgent
+)
+
+from src.services.portfolio_analytics_service import (
+    PortfolioAnalyticsService,
+)
+
+from src.services.portfolio_summary_service import (
+    PortfolioSummaryService,
+)
+
+from src.services.portfolio_reasoning_service import (
+    PortfolioReasoningService,
+)
+
+from src.services.llm_service import (
+    LLMService,
+)
 
 
 class ApplicationStartup:
@@ -42,6 +60,12 @@ class ApplicationStartup:
 
         self.routing_bootstrap = None
 
+        self.portfolio_analytics_service = None
+        self.portfolio_summary_service = None
+        self.portfolio_reasoning_service = None
+        self.portfolio_agent = None
+        self.coordinator = None
+
     # ---------------------------------------------------------
     # Public API
     # ---------------------------------------------------------
@@ -57,18 +81,58 @@ class ApplicationStartup:
 
             return self
 
+        # -----------------------------------------------------
+        # Routing infrastructure
+        # -----------------------------------------------------
+
         self.routing_bootstrap = (
             RoutingBootstrap()
             .initialize()
         )
 
-        self.coordinator = CoordinatorAgent(
+        # -----------------------------------------------------
+        # Portfolio dependencies
+        # -----------------------------------------------------
 
+        self.portfolio_analytics_service = (
+            PortfolioAnalyticsService()
+        )
+
+        self.portfolio_summary_service = (
+            PortfolioSummaryService(
+                analytics_service=(
+                    self.portfolio_analytics_service
+                )
+            )
+        )
+
+        self.portfolio_reasoning_service = (
+            PortfolioReasoningService(
+                llm_service=LLMService()
+            )
+        )
+
+        self.portfolio_agent = (
+            PortfolioAgent(
+                summary_service=(
+                    self.portfolio_summary_service
+                ),
+                reasoning_service=(
+                    self.portfolio_reasoning_service
+                ),
+            )
+        )
+
+        # -----------------------------------------------------
+        # Coordinator
+        # -----------------------------------------------------
+
+        self.coordinator = CoordinatorAgent(
             routing_service=(
                 self.routing_bootstrap
                 .intent_routing_service
-            )
-
+            ),
+            portfolio_agent=self.portfolio_agent,
         )
 
         self._initialized = True
